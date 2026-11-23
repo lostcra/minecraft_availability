@@ -1,5 +1,31 @@
-# Object file
-*.o
+# Gradle build files
+.gradle/
+build/
+out/
+bin/
 
-# Ada Library Information
-*.ali
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# Compiled class files
+*.class
+
+# Log files and crash reports
+*.log
+logs/
+crash-reports/
+
+# Temporary directories
+temp_*/
+run/
+
+# Package outputs (gradle build output)
+*.jar
+!libs/*.jar

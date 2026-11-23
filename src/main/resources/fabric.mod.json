@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "mcaccessibility",
+  "version": "1.0.0",
+  "name": "Minecraft Availability",
+  "description": "Accessibility mod for Minecraft providing screen narration, inventory reading, advancements navigation, and customizable speech synthesizer.",
+  "authors": [
+    "lostcra"
+  ],
+  "contact": {
+    "sources": "https://github.com/lostcra/minecraft_availability",
+    "issues": "https://github.com/lostcra/minecraft_availability/issues"
+  },
+  "license": "GNU AGPLv3",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.github.lostcra.mcaccessibility.MinecraftAvailabilityMod"
+    ]
+  },
+  "mixins": [
+    "mcaccessibility.mixins.json"
+  ],
+  "depends": {
+    "minecraft": ">=26.3",
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "cloth-config": "*"
+  }
+}
