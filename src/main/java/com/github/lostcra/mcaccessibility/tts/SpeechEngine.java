@@ -115,9 +115,12 @@ public class SpeechEngine {
         );
     }
 
-    public void stop() {
-        AccessibilityConfig config = AccessibilityConfig.get();
-        getActiveBackend(config).stop();
+    public synchronized void stop() {
+        for (CustomCommandBackend cb : customBackends.values()) {
+            cb.stop();
+        }
+        sapiBackend.stop();
+        mojangBackend.stop();
     }
 
     public List<String> getAvailableVoices() {

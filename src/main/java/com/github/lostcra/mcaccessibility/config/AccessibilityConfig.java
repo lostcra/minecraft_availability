@@ -58,6 +58,12 @@ public class AccessibilityConfig {
         if (instance.customSynthesizers == null) {
             instance.customSynthesizers = new ArrayList<>();
         }
+        if (instance.ttsEngine == null || instance.ttsEngine.isEmpty()) {
+            instance.ttsEngine = "WINDOWS_SAPI";
+        }
+        if (instance.selectedVoice == null || instance.selectedVoice.isEmpty()) {
+            instance.selectedVoice = "Default";
+        }
         if (instance.punctuationMode == null) {
             instance.punctuationMode = "NONE";
         }

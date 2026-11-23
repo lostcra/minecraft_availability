@@ -8,6 +8,7 @@
     "AccessorAdvancementTab",
     "AccessorAdvancementWidget",
     "AccessorAdvancementsScreen",
+    "MixinAccessibilityOptionsScreen",
     "MixinAbstractContainerScreen",
     "MixinAdvancementsScreen",
     "MixinChatComponent",

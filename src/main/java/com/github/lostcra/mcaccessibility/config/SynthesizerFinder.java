@@ -230,14 +230,19 @@ public class SynthesizerFinder {
         String userProfile = System.getenv("USERPROFILE");
 
         String[] folders = new String[]{
-                (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\eSpeak",
-                (progFiles != null ? progFiles : "C:\\Program Files") + "\\eSpeak",
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Downloads\\eSpeak NG",
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Downloads\\espeak-ng",
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Roaming\\.minecraft\\espeak-ng",
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Roaming\\.minecraft\\eSpeak NG",
                 (progFiles != null ? progFiles : "C:\\Program Files") + "\\eSpeak NG",
                 (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\eSpeak NG",
+                (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\eSpeak",
+                (progFiles != null ? progFiles : "C:\\Program Files") + "\\eSpeak",
                 (progFiles != null ? progFiles : "C:\\Program Files") + "\\RHVoice",
                 (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\RHVoice",
                 (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Local\\Programs\\espeak",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Local\\Programs\\Piper"
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Local\\Programs\\Piper",
+                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Desktop\\eSpeak NG"
         };
 
         for (String folder : folders) {

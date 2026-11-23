@@ -31,6 +31,17 @@ public class CustomCommandBackend implements SpeechBackend {
                 || lower.contains("unins");
     }
 
+    public static File findEspeakDataDir(File exe) {
+        if (exe == null) return null;
+        File parent = exe.getParentFile();
+        if (parent == null) return null;
+        File ngData = new File(parent, "espeak-ng-data");
+        if (ngData.exists() && ngData.isDirectory()) return parent;
+        File espeakData = new File(parent, "espeak-data");
+        if (espeakData.exists() && espeakData.isDirectory()) return parent;
+        return null;
+    }
+
     public boolean isEspeak() {
         if (config == null || config.getExecutablePath() == null) return false;
         return config.getExecutablePath().toLowerCase().contains("espeak");
@@ -71,6 +82,14 @@ public class CustomCommandBackend implements SpeechBackend {
 
             AccessibilityConfig accConfig = AccessibilityConfig.get();
             boolean isEspeak = isEspeak();
+
+            File dataDir = findEspeakDataDir(exe);
+            if (isEspeak && dataDir != null) {
+                boolean hasPath = (config.getArgsPattern() != null && config.getArgsPattern().contains("--path"));
+                if (!hasPath) {
+                    cmd.add("--path=" + dataDir.getAbsolutePath());
+                }
+            }
 
             String rawArgs = config.getArgsPattern();
             if (rawArgs != null && !rawArgs.trim().isEmpty()) {
@@ -193,7 +212,23 @@ public class CustomCommandBackend implements SpeechBackend {
         if (isEspeak() && isAvailable()) {
             try {
                 File exe = new File(config.getExecutablePath());
-                ProcessBuilder pb = new ProcessBuilder(exe.getAbsolutePath(), "--voices");
+                if (exe.isDirectory()) {
+                    File resolved = SynthesizerFinder.resolveExecutable(exe);
+                    if (resolved != null) {
+                        exe = resolved;
+                    }
+                }
+                List<String> voiceCmd = new ArrayList<>();
+                voiceCmd.add(exe.getAbsolutePath());
+                File dataDir = findEspeakDataDir(exe);
+                if (dataDir != null) {
+                    voiceCmd.add("--path=" + dataDir.getAbsolutePath());
+                }
+                voiceCmd.add("--voices");
+                ProcessBuilder pb = new ProcessBuilder(voiceCmd);
+                if (exe.getParentFile() != null) {
+                    pb.directory(exe.getParentFile());
+                }
                 pb.redirectErrorStream(true);
                 Process p = pb.start();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {

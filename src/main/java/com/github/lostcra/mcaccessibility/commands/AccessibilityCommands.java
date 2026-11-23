@@ -26,6 +26,18 @@ public class AccessibilityCommands {
                     mc.execute(() -> mc.setScreenAndShow(AccessibilityConfigScreen.create(mc.gui.screen())));
                     return 1;
                 })
+                .then(ClientCommands.literal("tutorial")
+                    .executes(ctx -> {
+                        Minecraft mc = Minecraft.getInstance();
+                        mc.execute(() -> mc.setScreenAndShow(new com.github.lostcra.mcaccessibility.config.TutorialScreen(mc.gui.screen())));
+                        return 1;
+                    }))
+                .then(ClientCommands.literal("guide")
+                    .executes(ctx -> {
+                        Minecraft mc = Minecraft.getInstance();
+                        mc.execute(() -> mc.setScreenAndShow(new com.github.lostcra.mcaccessibility.config.TutorialScreen(mc.gui.screen())));
+                        return 1;
+                    }))
                 .then(ClientCommands.literal("toggle")
                     .executes(ctx -> {
                         AccessibilityConfig config = AccessibilityConfig.get();
@@ -88,6 +100,18 @@ public class AccessibilityCommands {
                     mc.execute(() -> mc.setScreenAndShow(AccessibilityConfigScreen.create(mc.gui.screen())));
                     return 1;
                 })
+                .then(ClientCommands.literal("tutorial")
+                    .executes(ctx -> {
+                        Minecraft mc = Minecraft.getInstance();
+                        mc.execute(() -> mc.setScreenAndShow(new com.github.lostcra.mcaccessibility.config.TutorialScreen(mc.gui.screen())));
+                        return 1;
+                    }))
+                .then(ClientCommands.literal("guide")
+                    .executes(ctx -> {
+                        Minecraft mc = Minecraft.getInstance();
+                        mc.execute(() -> mc.setScreenAndShow(new com.github.lostcra.mcaccessibility.config.TutorialScreen(mc.gui.screen())));
+                        return 1;
+                    }))
         );
     }
 }

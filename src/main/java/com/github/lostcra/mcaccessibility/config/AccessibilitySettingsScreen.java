@@ -240,11 +240,21 @@ public class AccessibilitySettingsScreen extends Screen {
         interruptBtn.setTooltip(Tooltip.create(Component.literal("Остановка речи клавишами:\nПри включении нажатие любой клавиши (или Ctrl) мгновенно прерывает текущую речь синтезатора.")));
         y += 24;
 
-        // 10. Done Button (centered 200)
+        // 10. Tutorial & Done Buttons (2 columns of 150)
+        Button tutorialBtn = addRenderableWidget(Button.builder(
+                Component.literal("📖 Быстрый старт..."),
+                btn -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreenAndShow(new TutorialScreen(this));
+                    }
+                }
+        ).bounds(cx - 155, y, 150, 20).build());
+        tutorialBtn.setTooltip(Tooltip.create(Component.literal("Интерактивное руководство и мини-туториал по возможностям мода и управлению.")));
+
         Button doneBtn = addRenderableWidget(Button.builder(
                 CommonComponents.GUI_DONE,
                 btn -> onClose()
-        ).bounds(cx - 100, y, 200, 20).build());
+        ).bounds(cx + 5, y, 150, 20).build());
         doneBtn.setTooltip(Tooltip.create(Component.literal("Сохранить настройки и закрыть меню.")));
     }
 

@@ -55,20 +55,20 @@ public class EditBoxNarrationHelper {
             if (hasCtrl) {
                 // Word navigation left
                 if (newCursor != savedCursor) {
-                    int start = Math.min(savedCursor, newCursor);
-                    int end = Math.max(savedCursor, newCursor);
+                    int start = Math.max(0, Math.min(newVal.length(), Math.min(savedCursor, newCursor)));
+                    int end = Math.max(0, Math.min(newVal.length(), Math.max(savedCursor, newCursor)));
                     String word = newVal.substring(start, end).trim();
                     SpeechEngine.getInstance().speak(word.isEmpty() ? "Пробел" : word, true);
-                } else if (newCursor == 0) {
+                } else if (newCursor <= 0) {
                     SpeechEngine.getInstance().speak("Начало строки", true);
                 }
             } else if (!hasShift) {
                 // Character navigation left
-                if (newCursor != savedCursor && newCursor < newVal.length()) {
+                if (newCursor != savedCursor && newCursor >= 0 && newCursor < newVal.length()) {
                     char c = newVal.charAt(newCursor);
                     playCapitalBeepIfNeeded(c, config);
                     SpeechEngine.getInstance().speak(SpeechTextProcessor.narrateCharacter(c, config.getCapitalMode()), true);
-                } else if (newCursor == 0 && savedCursor == 0) {
+                } else if (newCursor <= 0 && savedCursor <= 0) {
                     SpeechEngine.getInstance().speak("Начало строки", true);
                 }
             }
@@ -81,8 +81,8 @@ public class EditBoxNarrationHelper {
             if (hasCtrl) {
                 // Word navigation right
                 if (newCursor != savedCursor) {
-                    int start = Math.min(savedCursor, newCursor);
-                    int end = Math.max(savedCursor, newCursor);
+                    int start = Math.max(0, Math.min(newVal.length(), Math.min(savedCursor, newCursor)));
+                    int end = Math.max(0, Math.min(newVal.length(), Math.max(savedCursor, newCursor)));
                     String word = newVal.substring(start, end).trim();
                     SpeechEngine.getInstance().speak(word.isEmpty() ? "Пробел" : word, true);
                 } else if (newCursor >= newVal.length()) {
@@ -90,11 +90,11 @@ public class EditBoxNarrationHelper {
                 }
             } else if (!hasShift) {
                 // Character navigation right
-                if (newCursor < newVal.length()) {
+                if (newCursor >= 0 && newCursor < newVal.length()) {
                     char c = newVal.charAt(newCursor);
                     playCapitalBeepIfNeeded(c, config);
                     SpeechEngine.getInstance().speak(SpeechTextProcessor.narrateCharacter(c, config.getCapitalMode()), true);
-                } else if (newCursor == newVal.length()) {
+                } else if (newCursor >= newVal.length()) {
                     SpeechEngine.getInstance().speak("Конец строки", true);
                 }
             }
@@ -133,7 +133,7 @@ public class EditBoxNarrationHelper {
             suppressScreenNarration = true;
             if (savedValue.length() > newVal.length()) {
                 int diff = savedValue.length() - newVal.length();
-                if (diff == 1 && newCursor < savedValue.length()) {
+                if (diff == 1 && newCursor >= 0 && newCursor < savedValue.length()) {
                     char del = savedValue.charAt(newCursor);
                     SpeechEngine.getInstance().speak("Удалено " + SpeechTextProcessor.narrateCharacter(del, config.getCapitalMode()), true);
                 } else {
@@ -150,7 +150,7 @@ public class EditBoxNarrationHelper {
             suppressScreenNarration = true;
             if (savedValue.length() > newVal.length()) {
                 int diff = savedValue.length() - newVal.length();
-                if (diff == 1 && savedCursor < savedValue.length()) {
+                if (diff == 1 && savedCursor >= 0 && savedCursor < savedValue.length()) {
                     char del = savedValue.charAt(savedCursor);
                     SpeechEngine.getInstance().speak("Удалено " + SpeechTextProcessor.narrateCharacter(del, config.getCapitalMode()), true);
                 } else {
@@ -213,7 +213,7 @@ public class EditBoxNarrationHelper {
         suppressScreenNarration = true;
         int pos = box.getCursorPosition();
         String val = box.getValue() != null ? box.getValue() : "";
-        if (pos < val.length()) {
+        if (pos >= 0 && pos < val.length()) {
             char c = val.charAt(pos);
             playCapitalBeepIfNeeded(c, config);
             SpeechEngine.getInstance().speak(SpeechTextProcessor.narrateCharacter(c, config.getCapitalMode()), true);
