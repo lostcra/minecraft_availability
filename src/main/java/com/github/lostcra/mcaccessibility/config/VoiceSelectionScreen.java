@@ -29,7 +29,7 @@ public class VoiceSelectionScreen extends Screen {
     private StringWidget pageIndicator;
 
     public VoiceSelectionScreen(Screen parent) {
-        super(Component.literal("Выбор голоса"));
+        super(Component.translatable("mcaccessibility.voice_screen.title"));
         this.parent = parent;
     }
 
@@ -69,14 +69,14 @@ public class VoiceSelectionScreen extends Screen {
         SpeechBackend backend = SpeechEngine.getInstance().getActiveBackend(config);
         String backendName = backend != null ? backend.getName() : "Синтезатор";
 
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 16, Component.literal("Выбор голоса: " + backendName), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, y, 310, 16, Component.translatable("mcaccessibility.voice_screen.header", backendName), this.font));
         y += 18;
 
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.literal("Поиск по названию или языку:"), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.translatable("mcaccessibility.voice_screen.search_label"), this.font));
         y += 14;
-        this.searchBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.literal("Поиск")));
-        this.searchBox.setHint(Component.literal("Например: ru, en, Irina, Aleksandr..."));
-        this.searchBox.setTooltip(Tooltip.create(Component.literal("Фильтрация списка голосов по названию или языку.")));
+        this.searchBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.translatable("mcaccessibility.voice_screen.search_label")));
+        this.searchBox.setHint(Component.translatable("mcaccessibility.voice_screen.search_hint"));
+        this.searchBox.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.voice_screen.search_tooltip")));
         this.searchBox.setResponder(this::onSearchChanged);
         y += 24;
 
@@ -101,7 +101,7 @@ public class VoiceSelectionScreen extends Screen {
         y = startY + 4 * 22 + 4;
 
         this.prevPageBtn = addRenderableWidget(Button.builder(
-                Component.literal("<< Пред."),
+                Component.translatable("mcaccessibility.voice_screen.prev_page"),
                 btn -> changePage(-1)
         ).bounds(cx - 155, y, 90, 20).build());
         this.prevPageBtn.setTooltip(Tooltip.create(Component.literal("Предыдущая страница списка голосов.")));
@@ -109,14 +109,14 @@ public class VoiceSelectionScreen extends Screen {
         this.pageIndicator = addRenderableOnly(new StringWidget(cx - 60, y, 120, 20, Component.literal("1 / 1"), this.font));
 
         this.nextPageBtn = addRenderableWidget(Button.builder(
-                Component.literal("След. >>"),
+                Component.translatable("mcaccessibility.voice_screen.next_page"),
                 btn -> changePage(1)
         ).bounds(cx + 65, y, 90, 20).build());
         this.nextPageBtn.setTooltip(Tooltip.create(Component.literal("Следующая страница списка голосов.")));
         y += 24;
 
         addRenderableWidget(Button.builder(
-                Component.literal("Проверить голос"),
+                Component.translatable("mcaccessibility.voice_screen.test"),
                 btn -> SpeechEngine.getInstance().testSpeech()
         ).bounds(cx - 155, y, 150, 20).build());
 

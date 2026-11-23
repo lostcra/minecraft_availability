@@ -25,7 +25,7 @@ public class AddSynthesizerScreen extends Screen {
     private int detectedIndex = 0;
 
     public AddSynthesizerScreen(Screen parent) {
-        super(Component.literal("Добавление синтезатора речи"));
+        super(Component.translatable("mcaccessibility.add_synth.title"));
         this.parent = parent;
     }
 
@@ -34,74 +34,74 @@ public class AddSynthesizerScreen extends Screen {
         int cx = this.width / 2;
         int y = 24;
 
-        addRenderableOnly(new StringWidget(cx - 155, 6, 310, 16, Component.literal("Добавление синтезатора речи"), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, 6, 310, 16, Component.translatable("mcaccessibility.add_synth.title"), this.font));
 
         // 1. Synthesizer Name
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.literal("Название синтезатора:"), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.translatable("mcaccessibility.add_synth.name_label"), this.font));
         y += 14;
-        this.nameBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.literal("Название")));
-        this.nameBox.setHint(Component.literal("Например: eSpeak, RHVoice, Piper"));
-        this.nameBox.setTooltip(Tooltip.create(Component.literal("Название синтезатора. Введите любое понятное имя, например: eSpeak или RHVoice.")));
+        this.nameBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.translatable("mcaccessibility.add_synth.name_label")));
+        this.nameBox.setHint(Component.translatable("mcaccessibility.add_synth.name_hint"));
+        this.nameBox.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.add_synth.name_tooltip")));
         this.nameBox.setMaxLength(64);
         y += 22;
 
         // 2. Executable Path or Folder & Browse button
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.literal("Путь к файлу, папке или установщику (.exe):"), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.translatable("mcaccessibility.add_synth.path_label"), this.font));
         y += 14;
-        this.pathBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 210, 20, Component.literal("Путь")));
-        this.pathBox.setHint(Component.literal("Папка программы, .exe или setup.exe"));
-        this.pathBox.setTooltip(Tooltip.create(Component.literal("Путь к установленной программе (.exe), к папке с программой (например, C:\\Program Files\\eSpeak) или к скачанному установщику (setup.exe).")));
+        this.pathBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 210, 20, Component.translatable("mcaccessibility.add_synth.path_label")));
+        this.pathBox.setHint(Component.translatable("mcaccessibility.add_synth.path_hint"));
+        this.pathBox.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.add_synth.path_tooltip")));
         this.pathBox.setMaxLength(256);
 
         Button browseBtn = addRenderableWidget(Button.builder(
-                Component.literal("Обзор..."),
+                Component.translatable("mcaccessibility.add_synth.browse"),
                 btn -> openBrowseDialog()
         ).bounds(cx + 60, y, 95, 20).build());
-        browseBtn.setTooltip(Tooltip.create(Component.literal("Обзор: открыть окно проводника Windows для выбора исполняемого файла или установщика.")));
+        browseBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.add_synth.browse_tooltip")));
         y += 22;
 
         // 3. Auto-Detect & Run Installer buttons
         Button autoDetectBtn = addRenderableWidget(Button.builder(
-                Component.literal("Автопоиск"),
+                Component.translatable("mcaccessibility.add_synth.autodetect"),
                 btn -> autoDetectSynthesizer()
         ).bounds(cx - 155, y, 150, 20).build());
-        autoDetectBtn.setTooltip(Tooltip.create(Component.literal("Автопоиск: автоматическое сканирование реестра Windows и системных папок на наличие установленных синтезаторов.")));
+        autoDetectBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.add_synth.autodetect_tooltip")));
 
         Button installBtn = addRenderableWidget(Button.builder(
-                Component.literal("Установить..."),
+                Component.translatable("mcaccessibility.add_synth.install"),
                 btn -> handleInstallButton()
         ).bounds(cx + 5, y, 150, 20).build());
-        installBtn.setTooltip(Tooltip.create(Component.literal("Установить: запуск выбранного установщика с автоматическим считыванием папки установки после завершения.")));
+        installBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.add_synth.install_tooltip")));
         y += 22;
 
         // 4. Arguments
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.literal("Аргументы команды (необязательно):"), this.font));
+        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14, Component.translatable("mcaccessibility.synth_edit.args_label"), this.font));
         y += 14;
-        this.argsBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.literal("Аргументы")));
+        this.argsBox = addRenderableWidget(new EditBox(this.font, cx - 155, y, 310, 20, Component.translatable("mcaccessibility.synth_edit.args_label")));
         this.argsBox.setHint(Component.literal("Для eSpeak: -v ru -b 1 (или оставьте пустым)"));
-        this.argsBox.setTooltip(Tooltip.create(Component.literal("Дополнительные аргументы командной строки.\nДля eSpeak на русском: -v ru -b 1\nШаблоны: {text}, {rate}, {volume}, {voice}, {punct}, {capitals}")));
+        this.argsBox.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.synth_edit.args_tooltip")));
         this.argsBox.setMaxLength(256);
         y += 22;
 
         // 5. Mode selector (stdin vs command line arguments)
         CycleButton<Boolean> stdinBtn = addRenderableWidget(CycleButton.onOffBuilder(true)
-                .create(cx - 155, y, 310, 20, Component.literal("Передавать текст через stdin"),
+                .create(cx - 155, y, 310, 20, Component.translatable("mcaccessibility.synth_edit.stdin_toggle"),
                         (btn, val) -> this.useStdin = val));
-        stdinBtn.setTooltip(Tooltip.create(Component.literal("Способ передачи текста синтезатору.\nВключено: через стандартный ввод stdin (рекомендуется для eSpeak).\nВыключено: через аргументы команды.")));
+        stdinBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.synth_edit.stdin_tooltip")));
         y += 24;
 
         // 6. Test & Save buttons
         Button testBtn = addRenderableWidget(Button.builder(
-                Component.literal("Проверить"),
+                Component.translatable("mcaccessibility.gui.test"),
                 btn -> testCustomSynthesizer()
         ).bounds(cx - 155, y, 150, 20).build());
-        testBtn.setTooltip(Tooltip.create(Component.literal("Проверить: запуск пробной фразы для проверки работы выбранного синтезатора.")));
+        testBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.gui.test_tooltip")));
 
         Button saveBtn = addRenderableWidget(Button.builder(
-                Component.literal("Сохранить"),
+                Component.translatable("mcaccessibility.gui.save"),
                 btn -> saveCustomSynthesizer()
         ).bounds(cx + 5, y, 150, 20).build());
-        saveBtn.setTooltip(Tooltip.create(Component.literal("Сохранить: сохранить синтезатор и сразу включить его в игре.")));
+        saveBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.gui.test_tooltip")));
         y += 24;
 
         // 7. Back Button

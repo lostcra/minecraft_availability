@@ -205,7 +205,7 @@ public class TutorialScreen extends Screen {
 
         // Prev Button
         Button prevBtn = addRenderableWidget(Button.builder(
-                Component.literal("◀ Пред."),
+                Component.translatable("mcaccessibility.tutorial.prev"),
                 b -> previousChapter()
         ).bounds(cx - 155, bottomY, bWidth, 20).build());
         prevBtn.active = (currentChapter > 0);
@@ -213,14 +213,14 @@ public class TutorialScreen extends Screen {
 
         // Speak again Button
         Button speakBtn = addRenderableWidget(Button.builder(
-                Component.literal("🔊 Озвучить"),
+                Component.translatable("mcaccessibility.tutorial.speak_again"),
                 b -> speakCurrentChapter()
         ).bounds(cx - 78, bottomY, 78, 20).build());
         speakBtn.setTooltip(Tooltip.create(Component.literal("Прослушать текущую главу заново")));
 
         // Next Button
         Button nextBtn = addRenderableWidget(Button.builder(
-                Component.literal("След. ▶"),
+                Component.translatable("mcaccessibility.tutorial.next"),
                 b -> nextChapter()
         ).bounds(cx + 5, bottomY, bWidth, 20).build());
         nextBtn.active = (currentChapter < chapters.size() - 1);

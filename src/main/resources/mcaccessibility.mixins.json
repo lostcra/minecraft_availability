@@ -8,6 +8,9 @@
     "AccessorAdvancementTab",
     "AccessorAdvancementWidget",
     "AccessorAdvancementsScreen",
+    "AccessorItemRow",
+    "AccessorStatisticsTab",
+    "AccessorStatsScreen",
     "MixinAccessibilityOptionsScreen",
     "MixinAbstractContainerScreen",
     "MixinAdvancementsScreen",
@@ -18,7 +21,8 @@
     "MixinEditBox",
     "MixinGameNarrator",
     "MixinKeyboardHandler",
-    "MixinScreen"
+    "MixinScreen",
+    "MixinStatsScreen"
   ],
   "injectors": {
     "defaultRequire": 1
