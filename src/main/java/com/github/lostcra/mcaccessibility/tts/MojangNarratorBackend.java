@@ -18,6 +18,16 @@ public class MojangNarratorBackend implements SpeechBackend {
     }
 
     @Override
+    public String getId() {
+        return "MOJANG";
+    }
+
+    @Override
+    public String getName() {
+        return "Mojang (Встроенный)";
+    }
+
+    @Override
     public void speak(String text, boolean interrupt, int volume, int rate, String voice) {
         if (narrator == null || !narrator.active()) {
             return;

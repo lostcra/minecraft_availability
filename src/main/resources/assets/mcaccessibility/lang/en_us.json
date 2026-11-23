@@ -3,8 +3,9 @@
   "key.mcaccessibility.toggle_voiceover": "Toggle Voiceover (Ctrl+Alt+A)",
   "key.mcaccessibility.toggle_chat": "Toggle Chat Narration (Ctrl+Alt+C)",
   "key.mcaccessibility.settings": "Accessibility Settings (Ctrl+Alt+S)",
-  "mcaccessibility.status.voiceover_on": "Accessibility voiceover enabled",
-  "mcaccessibility.status.voiceover_off": "Accessibility voiceover disabled",
+  "key.mcaccessibility.f3_summary": "Narrate F3 Menu (Ctrl+Alt+F)",
+  "mcaccessibility.status.voiceover_on": "Voiceover enabled",
+  "mcaccessibility.status.voiceover_off": "Voiceover disabled",
   "mcaccessibility.status.chat_on": "Chat narration enabled",
   "mcaccessibility.status.chat_off": "Chat narration disabled"
 }

@@ -3,6 +3,7 @@
   "key.mcaccessibility.toggle_voiceover": "Включить/выключить озвучку (Ctrl+Alt+A)",
   "key.mcaccessibility.toggle_chat": "Включить/выключить чтение чата (Ctrl+Alt+C)",
   "key.mcaccessibility.settings": "Настройки доступности (Ctrl+Alt+S)",
+  "key.mcaccessibility.f3_summary": "Озвучить меню F3 (Ctrl+Alt+F)",
   "mcaccessibility.status.voiceover_on": "Озвучка включена",
   "mcaccessibility.status.voiceover_off": "Озвучка отключена",
   "mcaccessibility.status.chat_on": "Озвучивание чата включено",

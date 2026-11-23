@@ -24,6 +24,16 @@ public class WindowsSapiBackend implements SpeechBackend {
         }
     }
 
+    @Override
+    public String getId() {
+        return "WINDOWS_SAPI";
+    }
+
+    @Override
+    public String getName() {
+        return "Windows SAPI (Системный)";
+    }
+
     private static boolean isWindows() {
         String os = System.getProperty("os.name", "").toLowerCase();
         return os.contains("win");

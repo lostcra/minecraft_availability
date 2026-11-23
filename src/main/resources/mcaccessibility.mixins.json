@@ -11,6 +11,11 @@
     "MixinAbstractContainerScreen",
     "MixinAdvancementsScreen",
     "MixinChatComponent",
+    "MixinDebugOptionsEntry",
+    "MixinDebugOptionsScreen",
+    "MixinDebugScreenEntryList",
+    "MixinEditBox",
+    "MixinGameNarrator",
     "MixinKeyboardHandler",
     "MixinScreen"
   ],

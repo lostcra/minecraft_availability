@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccessibilityConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -22,10 +24,16 @@ public class AccessibilityConfig {
     private boolean keyboardInventoryNav = true;
     private boolean keyboardAdvancementsNav = true;
     private boolean narrateHotkeys = true;
+    private boolean f3NarrationEnabled = true;
     private int speechRate = 0; // -10 to 10
     private int speechVolume = 100; // 0 to 100
-    private String ttsEngine = "MOJANG"; // "MOJANG" or "WINDOWS_SAPI"
+    private String ttsEngine = "WINDOWS_SAPI"; // "WINDOWS_SAPI", "MOJANG" or "CUSTOM_..."
     private String selectedVoice = "Default";
+    private String punctuationMode = "NONE"; // "NONE", "SOME", "ALL"
+    private boolean readEmojis = true;
+    private String capitalMode = "WORD"; // "OFF", "WORD", "PITCH", "BEEP"
+    private boolean interruptOnKeyPress = true;
+    private List<CustomSynthesizerConfig> customSynthesizers = new ArrayList<>();
 
     public static AccessibilityConfig get() {
         if (instance == null) {
@@ -46,6 +54,15 @@ public class AccessibilityConfig {
         if (instance == null) {
             instance = new AccessibilityConfig();
             instance.save();
+        }
+        if (instance.customSynthesizers == null) {
+            instance.customSynthesizers = new ArrayList<>();
+        }
+        if (instance.punctuationMode == null) {
+            instance.punctuationMode = "NONE";
+        }
+        if (instance.capitalMode == null) {
+            instance.capitalMode = "WORD";
         }
     }
 
@@ -105,4 +122,41 @@ public class AccessibilityConfig {
 
     public String getSelectedVoice() { return selectedVoice; }
     public void setSelectedVoice(String selectedVoice) { this.selectedVoice = selectedVoice; }
+
+    public String getPunctuationMode() { return punctuationMode != null ? punctuationMode : "NONE"; }
+    public void setPunctuationMode(String punctuationMode) { this.punctuationMode = punctuationMode; }
+
+    public boolean isReadEmojis() { return readEmojis; }
+    public void setReadEmojis(boolean readEmojis) { this.readEmojis = readEmojis; }
+
+    public String getCapitalMode() { return capitalMode != null ? capitalMode : "WORD"; }
+    public void setCapitalMode(String capitalMode) { this.capitalMode = capitalMode; }
+
+    public boolean isInterruptOnKeyPress() { return interruptOnKeyPress; }
+    public void setInterruptOnKeyPress(boolean interruptOnKeyPress) { this.interruptOnKeyPress = interruptOnKeyPress; }
+
+    public boolean isF3NarrationEnabled() { return f3NarrationEnabled; }
+    public void setF3NarrationEnabled(boolean f3NarrationEnabled) { this.f3NarrationEnabled = f3NarrationEnabled; }
+
+    public List<CustomSynthesizerConfig> getCustomSynthesizers() {
+        if (customSynthesizers == null) {
+            customSynthesizers = new ArrayList<>();
+        }
+        return customSynthesizers;
+    }
+
+    public void setCustomSynthesizers(List<CustomSynthesizerConfig> customSynthesizers) {
+        this.customSynthesizers = customSynthesizers;
+    }
+
+    public void addCustomSynthesizer(CustomSynthesizerConfig cfg) {
+        getCustomSynthesizers().removeIf(c -> c.getId().equalsIgnoreCase(cfg.getId()));
+        getCustomSynthesizers().add(cfg);
+        save();
+    }
+
+    public void removeCustomSynthesizer(String id) {
+        getCustomSynthesizers().removeIf(c -> c.getId().equalsIgnoreCase(id));
+        save();
+    }
 }

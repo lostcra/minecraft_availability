@@ -45,6 +45,9 @@ $cpItems = @(
     "$libs\com\mojang\brigadier\1.3.11\brigadier-1.3.11.jar",
     "$libs\net\java\dev\jna\jna\5.17.0\jna-5.17.0.jar",
     "$libs\net\java\dev\jna\jna-platform\5.17.0\jna-platform-5.17.0.jar",
+    "$libs\it\unimi\dsi\fastutil\8.5.18\fastutil-8.5.18.jar",
+    "$libs\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar",
+    "$libs\org\joml\joml\1.10.9\joml-1.10.9.jar",
     "$mods\cloth-config-fabric-26.3.159.jar"
 ) + $nestedJars
 
