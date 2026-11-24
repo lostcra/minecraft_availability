@@ -98,9 +98,21 @@ public class CustomSynthesizerEditScreen extends Screen {
             if (synthConfig.getExecutablePath() != null) {
                 File exe = new File(synthConfig.getExecutablePath());
                 if (exe.exists()) {
-                    new ProcessBuilder("explorer.exe", "/select,", exe.getAbsolutePath()).start();
-                    SpeechEngine.getInstance().speak("Папка программы открыта в Проводнике Windows", true);
-                    return;
+                    File folder = exe.isDirectory() ? exe : exe.getParentFile();
+                    String os = System.getProperty("os.name", "").toLowerCase();
+                    if (os.contains("win")) {
+                        new ProcessBuilder("explorer.exe", "/select,", exe.getAbsolutePath()).start();
+                        SpeechEngine.getInstance().speak("Папка программы открыта в Проводнике Windows", true);
+                        return;
+                    } else if (os.contains("mac")) {
+                        new ProcessBuilder("open", "-R", exe.getAbsolutePath()).start();
+                        SpeechEngine.getInstance().speak("Папка программы открыта в Finder", true);
+                        return;
+                    } else {
+                        new ProcessBuilder("xdg-open", folder != null ? folder.getAbsolutePath() : exe.getAbsolutePath()).start();
+                        SpeechEngine.getInstance().speak("Папка программы открыта в файловом менеджере", true);
+                        return;
+                    }
                 }
             }
             SpeechEngine.getInstance().speak("Файл программы не найден на диске", true);

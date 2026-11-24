@@ -115,11 +115,23 @@ Source code is located under `src/main/java/com/github/lostcra/mcaccessibility`:
   * `MojangNarratorBackend.java` — fallback narrator backend.
 
 ### Building
-The repository includes a standalone build script [compile.ps1](file:///c:/Users/lostcra/Desktop/minecraft_availability/compile.ps1):
+The repository includes cross-platform build scripts with automatic discovery of Java 25 and `.minecraft` libraries:
+
+**On Windows (PowerShell):**
 ```powershell
-# Build the mod JAR into build/libs:
+# Build mod JAR (minecraft_availability-0.1.0-beta.jar):
 .\compile.ps1
 
 # Build and copy directly into .minecraft/mods:
 .\compile.ps1 -InstallToMods
+```
+
+**On Linux / macOS (Bash):**
+```bash
+# Build JAR file:
+chmod +x ./compile.sh
+./compile.sh
+
+# Build and install to mods folder:
+./compile.sh --install
 ```

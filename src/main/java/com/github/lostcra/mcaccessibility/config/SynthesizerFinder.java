@@ -33,21 +33,39 @@ public class SynthesizerFinder {
         public boolean isUseStdin() { return useStdin; }
     }
 
+    public static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase().contains("win");
+    }
+
+    public static boolean isMac() {
+        return System.getProperty("os.name", "").toLowerCase().contains("mac");
+    }
+
     public static boolean isInstaller(File file) {
         if (file == null) return false;
         String name = file.getName().toLowerCase();
         return name.contains("setup")
                 || name.contains("install")
                 || name.contains("wizard")
-                || name.contains("unins");
+                || name.contains("unins")
+                || name.endsWith(".deb")
+                || name.endsWith(".rpm")
+                || name.endsWith(".pkg")
+                || name.endsWith(".dmg");
     }
 
     public static File resolveExecutable(File target) {
         if (target == null || !target.exists()) return null;
 
         if (target.isFile()) {
-            if (target.getName().toLowerCase().endsWith(".exe") && !isInstaller(target)) {
-                return target;
+            if (isWindows()) {
+                if (target.getName().toLowerCase().endsWith(".exe") && !isInstaller(target)) {
+                    return target;
+                }
+            } else {
+                if (target.canExecute() && !isInstaller(target)) {
+                    return target;
+                }
             }
             return null;
         }
@@ -69,6 +87,16 @@ public class SynthesizerFinder {
         return resolveExecutable(f);
     }
 
+    private static boolean isKnownSynthExe(String name) {
+        String lower = name.toLowerCase();
+        return lower.equals("espeak.exe") || lower.equals("espeak")
+                || lower.equals("espeak-ng.exe") || lower.equals("espeak-ng")
+                || lower.equals("rhvoice-test.exe") || lower.equals("rhvoice-test")
+                || lower.equals("piper.exe") || lower.equals("piper")
+                || lower.equals("say.exe") || lower.equals("say")
+                || lower.equals("spd-say");
+    }
+
     private static File searchExeInDirectory(File dir, int currentDepth, int maxDepth) {
         if (dir == null || !dir.isDirectory() || currentDepth > maxDepth) return null;
 
@@ -77,13 +105,8 @@ public class SynthesizerFinder {
 
         // Pass 1: Check root of this directory for known prioritized synthesizer executables
         for (File f : files) {
-            if (f.isFile()) {
-                String name = f.getName().toLowerCase();
-                if (name.equals("espeak.exe") || name.equals("espeak-ng.exe")
-                        || name.equals("rhvoice-test.exe") || name.equals("piper.exe")
-                        || name.equals("say.exe")) {
-                    return f;
-                }
+            if (f.isFile() && isKnownSynthExe(f.getName())) {
+                return f;
             }
         }
 
@@ -100,7 +123,7 @@ public class SynthesizerFinder {
 
         // Pass 3: If no known name was found, look for any executable that is not an uninstaller/installer
         for (File f : files) {
-            if (f.isFile() && f.getName().toLowerCase().endsWith(".exe")) {
+            if (f.isFile() && (isWindows() ? f.getName().toLowerCase().endsWith(".exe") : f.canExecute())) {
                 String name = f.getName().toLowerCase();
                 if (!isInstaller(f) && !name.contains("unins") && !name.contains("update")) {
                     return f;
@@ -144,6 +167,9 @@ public class SynthesizerFinder {
     }
 
     public static List<DiscoveredSynthesizer> scanRegistry() {
+        if (!isWindows()) {
+            return java.util.Collections.emptyList();
+        }
         List<DiscoveredSynthesizer> result = new ArrayList<>();
         String[] keys = new String[]{
                 "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
@@ -225,32 +251,71 @@ public class SynthesizerFinder {
 
     public static List<DiscoveredSynthesizer> scanStandardDirectories() {
         List<DiscoveredSynthesizer> result = new ArrayList<>();
-        String progFiles = System.getenv("ProgramFiles");
-        String progFilesX86 = System.getenv("ProgramFiles(x86)");
-        String userProfile = System.getenv("USERPROFILE");
+        String userHome = System.getProperty("user.home", ".");
 
-        String[] folders = new String[]{
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Downloads\\eSpeak NG",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Downloads\\espeak-ng",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Roaming\\.minecraft\\espeak-ng",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Roaming\\.minecraft\\eSpeak NG",
-                (progFiles != null ? progFiles : "C:\\Program Files") + "\\eSpeak NG",
-                (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\eSpeak NG",
-                (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\eSpeak",
-                (progFiles != null ? progFiles : "C:\\Program Files") + "\\eSpeak",
-                (progFiles != null ? progFiles : "C:\\Program Files") + "\\RHVoice",
-                (progFilesX86 != null ? progFilesX86 : "C:\\Program Files (x86)") + "\\RHVoice",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Local\\Programs\\espeak",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\AppData\\Local\\Programs\\Piper",
-                (userProfile != null ? userProfile : "C:\\Users\\Default") + "\\Desktop\\eSpeak NG"
-        };
+        if (isWindows()) {
+            String progFiles = System.getenv("ProgramFiles");
+            String progFilesX86 = System.getenv("ProgramFiles(x86)");
+            String userProfile = System.getenv("USERPROFILE");
+            if (userProfile == null || userProfile.trim().isEmpty()) {
+                userProfile = userHome;
+            }
 
-        for (String folder : folders) {
-            File f = new File(folder);
-            if (f.exists() && f.isDirectory()) {
-                File exe = resolveExecutable(f);
-                if (exe != null && exe.exists() && exe.isFile()) {
-                    createAndAddSynthesizer(result, f.getName(), exe);
+            List<String> folders = new ArrayList<>();
+            folders.add(userProfile + "\\AppData\\Roaming\\.minecraft\\espeak-ng");
+            folders.add(userProfile + "\\AppData\\Roaming\\.minecraft\\eSpeak NG");
+            folders.add(userProfile + "\\Downloads\\eSpeak NG");
+            folders.add(userProfile + "\\Downloads\\espeak-ng");
+            folders.add(userProfile + "\\AppData\\Local\\Programs\\espeak");
+            folders.add(userProfile + "\\AppData\\Local\\Programs\\Piper");
+            folders.add(userProfile + "\\Desktop\\eSpeak NG");
+            if (progFiles != null && !progFiles.trim().isEmpty()) {
+                folders.add(progFiles + "\\eSpeak NG");
+                folders.add(progFiles + "\\eSpeak");
+                folders.add(progFiles + "\\RHVoice");
+                folders.add(progFiles + "\\Piper");
+            }
+            if (progFilesX86 != null && !progFilesX86.trim().isEmpty()) {
+                folders.add(progFilesX86 + "\\eSpeak NG");
+                folders.add(progFilesX86 + "\\eSpeak");
+                folders.add(progFilesX86 + "\\RHVoice");
+            }
+
+            for (String folder : folders) {
+                File f = new File(folder);
+                if (f.exists() && f.isDirectory()) {
+                    File exe = resolveExecutable(f);
+                    if (exe != null && exe.exists() && exe.isFile()) {
+                        createAndAddSynthesizer(result, f.getName(), exe);
+                    }
+                }
+            }
+        } else {
+            // Linux and macOS: check standard PATH binaries
+            String[] binDirs = new String[]{"/usr/bin", "/usr/local/bin", "/opt/homebrew/bin", "/opt/local/bin", userHome + "/.local/bin"};
+            String[] synthNames = new String[]{"espeak-ng", "espeak", "rhvoice-test", "piper", "say", "spd-say"};
+            for (String binDir : binDirs) {
+                for (String sName : synthNames) {
+                    File candidate = new File(binDir, sName);
+                    if (candidate.exists() && candidate.isFile() && candidate.canExecute()) {
+                        createAndAddSynthesizer(result, candidate.getName(), candidate);
+                    }
+                }
+            }
+
+            String[] appDirs = new String[]{
+                    userHome + "/.minecraft/espeak-ng",
+                    userHome + "/.minecraft/mods",
+                    userHome + "/Downloads/espeak-ng",
+                    "/Applications/RHVoice.app"
+            };
+            for (String appDir : appDirs) {
+                File f = new File(appDir);
+                if (f.exists() && f.isDirectory()) {
+                    File exe = resolveExecutable(f);
+                    if (exe != null && exe.exists() && exe.isFile()) {
+                        createAndAddSynthesizer(result, f.getName(), exe);
+                    }
                 }
             }
         }
@@ -264,7 +329,11 @@ public class SynthesizerFinder {
         String args = "";
         boolean stdin = true;
 
-        if (lowerPath.contains("espeak-ng")) {
+        if (lowerPath.contains("say") && isMac()) {
+            name = "macOS Speech (say)";
+            args = "";
+            stdin = false;
+        } else if (lowerPath.contains("espeak-ng")) {
             name = "eSpeak NG";
             args = "-v ru";
         } else if (lowerPath.contains("espeak")) {
@@ -338,21 +407,62 @@ public class SynthesizerFinder {
     public static void openBrowseDialog(Consumer<String> onSelected) {
         Thread t = new Thread(() -> {
             try {
-                ProcessBuilder pb = new ProcessBuilder(
-                        "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
-                        "Add-Type -AssemblyName System.Windows.Forms; " +
-                        "$d = New-Object System.Windows.Forms.OpenFileDialog; " +
-                        "$d.Title = 'Выберите исполняемый файл (.exe) или установщик'; " +
-                        "$d.Filter = 'Программы и установщики (*.exe)|*.exe|Все файлы (*.*)|*.*'; " +
-                        "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
-                );
-                Process p = pb.start();
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
-                    String line = reader.readLine();
-                    if (line != null && !line.trim().isEmpty()) {
-                        String path = line.trim();
-                        Minecraft.getInstance().execute(() -> onSelected.accept(path));
+                String selectedPath = null;
+                if (isWindows()) {
+                    ProcessBuilder pb = new ProcessBuilder(
+                            "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
+                            "Add-Type -AssemblyName System.Windows.Forms; " +
+                            "$d = New-Object System.Windows.Forms.OpenFileDialog; " +
+                            "$d.Title = 'Выберите исполняемый файл (.exe) или установщик'; " +
+                            "$d.Filter = 'Программы и установщики (*.exe)|*.exe|Все файлы (*.*)|*.*'; " +
+                            "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
+                    );
+                    Process p = pb.start();
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                        String line = reader.readLine();
+                        if (line != null && !line.trim().isEmpty()) {
+                            selectedPath = line.trim();
+                        }
                     }
+                } else if (isMac()) {
+                    ProcessBuilder pb = new ProcessBuilder(
+                            "osascript", "-e", "POSIX path of (choose file with prompt \"Select executable or installer\")"
+                    );
+                    Process p = pb.start();
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                        String line = reader.readLine();
+                        if (line != null && !line.trim().isEmpty()) {
+                            selectedPath = line.trim();
+                        }
+                    }
+                } else {
+                    // Linux
+                    try {
+                        ProcessBuilder pb = new ProcessBuilder("zenity", "--file-selection", "--title=Select executable or installer");
+                        Process p = pb.start();
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                            String line = reader.readLine();
+                            if (line != null && !line.trim().isEmpty()) {
+                                selectedPath = line.trim();
+                            }
+                        }
+                    } catch (Throwable ignored) {
+                        try {
+                            ProcessBuilder pb = new ProcessBuilder("kdialog", "--getopenfilename");
+                            Process p = pb.start();
+                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                                String line = reader.readLine();
+                                if (line != null && !line.trim().isEmpty()) {
+                                    selectedPath = line.trim();
+                                }
+                            }
+                        } catch (Throwable ignored2) {}
+                    }
+                }
+
+                if (selectedPath != null && !selectedPath.trim().isEmpty()) {
+                    final String res = selectedPath.trim();
+                    Minecraft.getInstance().execute(() -> onSelected.accept(res));
                 }
             } catch (Throwable t1) {
                 t1.printStackTrace();

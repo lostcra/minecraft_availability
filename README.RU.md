@@ -115,11 +115,23 @@
   * `MojangNarratorBackend.java` — fallback-бэкенд через ванильный диктор.
 
 ### Сборка проекта
-Для сборки проекта используется автономный скрипт [compile.ps1](file:///c:/Users/lostcra/Desktop/minecraft_availability/compile.ps1), использующий компилятор Java 25 и библиотеки из `.minecraft/libraries`:
+Для сборки проекта используются кроссплатформенные скрипты с автоматическим обнаружением Java 25 и библиотек `.minecraft`:
+
+**На Windows (PowerShell):**
 ```powershell
-# Собрать JAR-файл мода в build/libs:
+# Собрать JAR-файл мода (minecraft_availability-0.1.0-beta.jar):
 .\compile.ps1
 
 # Собрать и сразу установить в папку .minecraft/mods:
 .\compile.ps1 -InstallToMods
+```
+
+**На Linux / macOS (Bash):**
+```bash
+# Собрать JAR-файл:
+chmod +x ./compile.sh
+./compile.sh
+
+# Собрать и установить в папку mods:
+./compile.sh --install
 ```

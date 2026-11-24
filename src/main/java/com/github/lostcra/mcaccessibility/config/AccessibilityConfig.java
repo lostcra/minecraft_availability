@@ -15,6 +15,10 @@ public class AccessibilityConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static AccessibilityConfig instance;
 
+    public static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase().contains("win");
+    }
+
     private boolean masterEnabled = true;
     private boolean chatNarrationEnabled = false;
     private boolean screenNarrationEnabled = true;
@@ -27,7 +31,7 @@ public class AccessibilityConfig {
     private boolean f3NarrationEnabled = true;
     private int speechRate = 0; // -10 to 10
     private int speechVolume = 100; // 0 to 100
-    private String ttsEngine = "WINDOWS_SAPI"; // "WINDOWS_SAPI", "MOJANG" or "CUSTOM_..."
+    private String ttsEngine = isWindows() ? "WINDOWS_SAPI" : "MOJANG"; // "WINDOWS_SAPI", "MOJANG" or "CUSTOM_..."
     private String selectedVoice = "Default";
     private String punctuationMode = "NONE"; // "NONE", "SOME", "ALL"
     private boolean readEmojis = true;
@@ -59,7 +63,7 @@ public class AccessibilityConfig {
             instance.customSynthesizers = new ArrayList<>();
         }
         if (instance.ttsEngine == null || instance.ttsEngine.isEmpty()) {
-            instance.ttsEngine = "WINDOWS_SAPI";
+            instance.ttsEngine = isWindows() ? "WINDOWS_SAPI" : "MOJANG";
         }
         if (instance.selectedVoice == null || instance.selectedVoice.isEmpty()) {
             instance.selectedVoice = "Default";
