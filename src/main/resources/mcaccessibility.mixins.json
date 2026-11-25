@@ -6,6 +6,7 @@
   "client": [
     "AccessorAbstractContainerScreen",
     "AccessorAdvancementTab",
+    "AccessorAdvancementToast",
     "AccessorAdvancementWidget",
     "AccessorAdvancementsScreen",
     "AccessorEditBox",
@@ -36,6 +37,7 @@
     "MixinOptimizeWorldScreen",
     "MixinScreen",
     "MixinStatsScreen",
+    "MixinToastManager",
     "MixinTransferableSelectionListPackEntry",
     "MixinUnsupportedGraphicsWarningScreen"
   ],

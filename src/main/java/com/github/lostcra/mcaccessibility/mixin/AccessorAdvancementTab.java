@@ -15,4 +15,7 @@ public interface AccessorAdvancementTab {
 
     @Accessor("root")
     AdvancementWidget mcaccess$getRoot();
+
+    @Accessor("hovered")
+    AdvancementWidget mcaccess$getHovered();
 }

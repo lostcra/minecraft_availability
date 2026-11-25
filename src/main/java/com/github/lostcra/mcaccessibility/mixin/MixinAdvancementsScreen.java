@@ -22,6 +22,19 @@ public class MixinAdvancementsScreen {
         }
     }
 
+    @Inject(method = "tick", at = @At("RETURN"))
+    private void onTick(CallbackInfo ci) {
+        AccessibilityConfig config = AccessibilityConfig.get();
+        if (config.isMasterEnabled() && config.isAdvancementNarrationEnabled()) {
+            AdvancementNavigator.onTick((AdvancementsScreen) (Object) this);
+        }
+    }
+
+    @Inject(method = "removed", at = @At("HEAD"))
+    private void onRemoved(CallbackInfo ci) {
+        AdvancementNavigator.onScreenClosed();
+    }
+
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         AccessibilityConfig config = AccessibilityConfig.get();
@@ -61,7 +74,8 @@ public class MixinAdvancementsScreen {
             return;
         }
 
-        if (event.isConfirmation() || event.key() == InputConstants.KEY_SPACE || event.key() == InputConstants.KEY_RETURN) {
+        if (event.isConfirmation() || event.key() == InputConstants.KEY_SPACE || event.key() == InputConstants.KEY_RETURN
+                || event.key() == InputConstants.KEY_R || event.keycode() == InputConstants.KEYCODE_R) {
             AdvancementNavigator.repeatCurrent();
             cir.setReturnValue(true);
         }

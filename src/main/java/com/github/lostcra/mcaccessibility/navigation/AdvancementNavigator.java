@@ -4,11 +4,14 @@ import com.github.lostcra.mcaccessibility.mixin.AccessorAdvancementTab;
 import com.github.lostcra.mcaccessibility.mixin.AccessorAdvancementWidget;
 import com.github.lostcra.mcaccessibility.mixin.AccessorAdvancementsScreen;
 import com.github.lostcra.mcaccessibility.tts.SpeechEngine;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -17,7 +20,29 @@ import java.util.List;
 
 public class AdvancementNavigator {
     private static WeakReference<AdvancementWidget> selectedWidgetRef = new WeakReference<>(null);
+    private static WeakReference<AdvancementWidget> lastHoveredWidgetRef = new WeakReference<>(null);
     private static WeakReference<AdvancementTab> lastTabRef = new WeakReference<>(null);
+
+    public static void onScreenClosed() {
+        selectedWidgetRef = new WeakReference<>(null);
+        lastHoveredWidgetRef = new WeakReference<>(null);
+        lastTabRef = new WeakReference<>(null);
+    }
+
+    public static void onTick(AdvancementsScreen screen) {
+        if (screen == null) return;
+        AccessorAdvancementsScreen acc = (AccessorAdvancementsScreen) screen;
+        AdvancementTab tab = acc.mcaccess$getSelectedTab();
+        if (tab == null) return;
+        AdvancementWidget hovered = ((AccessorAdvancementTab) tab).mcaccess$getHovered();
+        if (hovered != lastHoveredWidgetRef.get()) {
+            lastHoveredWidgetRef = new WeakReference<>(hovered);
+            if (hovered != null) {
+                selectedWidgetRef = new WeakReference<>(hovered);
+                announceWidget(hovered, true);
+            }
+        }
+    }
 
     public static void onScreenOpened(AdvancementsScreen screen) {
         AccessorAdvancementsScreen acc = (AccessorAdvancementsScreen) screen;
@@ -30,15 +55,15 @@ public class AdvancementNavigator {
             }
         }
         lastTabRef = new WeakReference<>(tab);
+        lastHoveredWidgetRef = new WeakReference<>(null);
         if (tab != null) {
             String tabName = tab.getTitle().getString();
-            SpeechEngine.getInstance().speak("Экран достижений. Вкладка: " + tabName, true);
             AccessorAdvancementTab tabAcc = (AccessorAdvancementTab) tab;
             AdvancementWidget root = tabAcc.mcaccess$getRoot();
             selectedWidgetRef = new WeakReference<>(root);
-            if (root != null) {
-                announceWidget(root, false);
-            }
+            String prefix = "Экран достижений. Вкладка: " + tabName;
+            String body = root != null ? buildAnnouncement(root) : "";
+            SpeechEngine.getInstance().speak(body.isEmpty() ? prefix : prefix + ". " + body, true);
         } else {
             selectedWidgetRef = new WeakReference<>(null);
             SpeechEngine.getInstance().speak("Экран достижений. Достижения отсутствуют.", true);
@@ -60,16 +85,15 @@ public class AdvancementNavigator {
         AdvancementTab nextTab = tabList.get(nextIdx);
         acc.mcaccess$setSelectedTab(nextTab);
         lastTabRef = new WeakReference<>(nextTab);
+        lastHoveredWidgetRef = new WeakReference<>(null);
 
         String tabName = nextTab.getTitle().getString();
-        SpeechEngine.getInstance().speak("Вкладка: " + tabName, true);
-
         AccessorAdvancementTab tabAcc = (AccessorAdvancementTab) nextTab;
         AdvancementWidget root = tabAcc.mcaccess$getRoot();
         selectedWidgetRef = new WeakReference<>(root);
-        if (root != null) {
-            announceWidget(root, false);
-        }
+        String prefix = "Вкладка: " + tabName;
+        String body = root != null ? buildAnnouncement(root) : "";
+        SpeechEngine.getInstance().speak(body.isEmpty() ? prefix : prefix + ". " + body, true);
     }
 
     public static void navigate(AdvancementsScreen screen, int dirX, int dirY) {
@@ -163,20 +187,65 @@ public class AdvancementNavigator {
         }
     }
 
+    public static void announceCompleted(AdvancementHolder holder) {
+        if (holder == null || holder.value() == null) return;
+        holder.value().display().ifPresent(display -> {
+            String header = display.type().getDisplayName() != null
+                    ? display.type().getDisplayName().getString().trim()
+                    : "Достижение получено";
+            String title = display.title() != null ? display.title().getString().trim() : "";
+            String desc = display.description() != null ? display.description().getString().trim() : "";
+
+            StringBuilder sb = new StringBuilder();
+            if (!header.isEmpty()) {
+                sb.append(header);
+            }
+            if (!title.isEmpty()) {
+                if (sb.length() > 0) sb.append(": ");
+                sb.append(title);
+            }
+            if (!desc.isEmpty()) {
+                if (sb.length() > 0) sb.append(". ");
+                sb.append(desc);
+            }
+            if (sb.length() > 0) {
+                SpeechEngine.getInstance().speak(sb.toString(), false);
+            }
+        });
+    }
+
     public static void announceWidget(AdvancementWidget widget, boolean interrupt) {
-        if (widget == null) return;
+        String text = buildAnnouncement(widget);
+        if (!text.isEmpty()) {
+            SpeechEngine.getInstance().speak(text, interrupt);
+        }
+    }
+
+    public static String buildAnnouncement(AdvancementWidget widget) {
+        if (widget == null) return "";
         DisplayInfo display = widget.getDisplay();
-        if (display == null) return;
+        if (display == null) return "";
 
         StringBuilder sb = new StringBuilder();
-        sb.append(display.title().getString());
+        String title = display.title() != null ? display.title().getString().trim() : "";
+        if (!title.isEmpty()) {
+            sb.append(title).append(". ");
+        }
+
+        String description = display.description() != null ? display.description().getString().trim() : "";
+        if (description.isEmpty()) {
+            description = extractWrappedDescription(widget);
+        }
+        if (!description.isEmpty()) {
+            sb.append(description).append(". ");
+        }
 
         String typeStr = switch (display.type()) {
             case TASK -> "Обычное";
             case GOAL -> "Цель";
             case CHALLENGE -> "Испытание";
         };
-        sb.append(". ").append(typeStr);
+        sb.append(typeStr);
 
         AccessorAdvancementWidget widgetAcc = (AccessorAdvancementWidget) widget;
         AdvancementProgress progress = widgetAcc.mcaccess$getProgress();
@@ -185,15 +254,31 @@ public class AdvancementNavigator {
                 sb.append(". Выполнено.");
             } else {
                 sb.append(". Не выполнено");
-                if (progress.hasProgress() && progress.getPercent() > 0) {
+                Component progressText = progress.getProgressText();
+                if (progressText != null && !progressText.getString().trim().isEmpty()) {
+                    sb.append(" (").append(progressText.getString().trim()).append(")");
+                } else if (progress.hasProgress() && progress.getPercent() > 0) {
                     sb.append(", прогресс ").append(Math.round(progress.getPercent() * 100)).append("%");
                 }
                 sb.append(".");
             }
         }
 
-        sb.append(" ").append(display.description().getString());
+        return sb.toString().trim();
+    }
 
-        SpeechEngine.getInstance().speak(sb.toString(), interrupt);
+    private static String extractWrappedDescription(AdvancementWidget widget) {
+        List<FormattedCharSequence> lines = ((AccessorAdvancementWidget) widget).mcaccess$getDescriptionLines();
+        if (lines == null || lines.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (FormattedCharSequence line : lines) {
+            if (line == null) continue;
+            if (sb.length() > 0) sb.append(' ');
+            line.accept((index, style, codePoint) -> {
+                sb.appendCodePoint(codePoint);
+                return true;
+            });
+        }
+        return sb.toString().trim();
     }
 }

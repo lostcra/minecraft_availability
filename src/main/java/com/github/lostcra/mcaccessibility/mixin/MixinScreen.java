@@ -11,6 +11,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationTrigger;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.achievement.StatsScreen;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -40,8 +41,27 @@ public abstract class MixinScreen {
         }
     }
 
+    private boolean isCustomNavigatedScreen() {
+        AccessibilityConfig config = AccessibilityConfig.get();
+        if (!config.isMasterEnabled() || !config.isScreenNarrationEnabled()) {
+            return false;
+        }
+        if ((Object) this instanceof AbstractContainerScreen && config.isInventoryNarrationEnabled()) {
+            return true;
+        }
+        if ((Object) this instanceof AdvancementsScreen && config.isAdvancementNarrationEnabled()) {
+            return true;
+        }
+        return (Object) this instanceof StatsScreen;
+    }
+
     @Inject(method = "afterKeyboardAction", at = @At("HEAD"), cancellable = true)
     private void onAfterKeyboardAction(CallbackInfo ci) {
+        if (isCustomNavigatedScreen()) {
+            this.narrationSuppressTime = Long.MAX_VALUE;
+            ci.cancel();
+            return;
+        }
         AccessibilityConfig config = AccessibilityConfig.get();
         if (config.isMasterEnabled() && config.isScreenNarrationEnabled()) {
             this.scheduleNarration(100L, true, NarrationTrigger.KEYBOARD);
@@ -51,6 +71,11 @@ public abstract class MixinScreen {
 
     @Inject(method = "afterMouseMove", at = @At("HEAD"), cancellable = true)
     private void onAfterMouseMove(CallbackInfo ci) {
+        if (isCustomNavigatedScreen()) {
+            this.narrationSuppressTime = Long.MAX_VALUE;
+            ci.cancel();
+            return;
+        }
         AccessibilityConfig config = AccessibilityConfig.get();
         if (config.isMasterEnabled() && config.isScreenNarrationEnabled()) {
             this.scheduleNarration(250L, true, NarrationTrigger.MOUSE);
@@ -60,6 +85,11 @@ public abstract class MixinScreen {
 
     @Inject(method = "afterMouseAction", at = @At("HEAD"), cancellable = true)
     private void onAfterMouseAction(CallbackInfo ci) {
+        if (isCustomNavigatedScreen()) {
+            this.narrationSuppressTime = Long.MAX_VALUE;
+            ci.cancel();
+            return;
+        }
         AccessibilityConfig config = AccessibilityConfig.get();
         if (config.isMasterEnabled() && config.isScreenNarrationEnabled()) {
             this.scheduleNarration(100L, true, NarrationTrigger.MOUSE);
@@ -152,17 +182,8 @@ public abstract class MixinScreen {
 
     @Inject(method = "triggerImmediateNarration", at = @At("HEAD"), cancellable = true)
     private void onTriggerImmediateNarration(boolean interrupt, CallbackInfo ci) {
-        AccessibilityConfig config = AccessibilityConfig.get();
-        if (!config.isMasterEnabled() || !config.isScreenNarrationEnabled()) {
-            return;
-        }
-        if ((Object) this instanceof AbstractContainerScreen && config.isInventoryNarrationEnabled()) {
+        if (isCustomNavigatedScreen()) {
             ci.cancel();
-            return;
-        }
-        if ((Object) this instanceof AdvancementsScreen && config.isAdvancementNarrationEnabled()) {
-            ci.cancel();
-            return;
         }
     }
 }
