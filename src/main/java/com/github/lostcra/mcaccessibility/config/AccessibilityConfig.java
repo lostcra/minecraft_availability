@@ -20,7 +20,7 @@ public class AccessibilityConfig {
     }
 
     private boolean masterEnabled = true;
-    private boolean chatNarrationEnabled = false;
+    private boolean chatNarrationEnabled = true;
     private boolean screenNarrationEnabled = true;
     private boolean inventoryNarrationEnabled = true;
     private boolean advancementNarrationEnabled = true;
