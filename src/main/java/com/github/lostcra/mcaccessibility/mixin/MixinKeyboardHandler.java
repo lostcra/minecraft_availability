@@ -67,6 +67,14 @@ public class MixinKeyboardHandler {
                         return;
                     }
                 }
+
+                if (key == InputConstants.KEY_R || code == InputConstants.KEYCODE_R) {
+                    if (minecraft.gui != null && minecraft.gui.screen() != null) {
+                        com.github.lostcra.mcaccessibility.navigation.ScreenTextHelper.requestReadCurrentScreen(minecraft);
+                        ci.cancel();
+                        return;
+                    }
+                }
             }
 
             // 2. Interrupt ongoing speech on key press:

@@ -16,9 +16,36 @@ import net.minecraft.stats.StatsCounter;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 
 public class StatsNarrationHelper {
+    private static final Method SET_SELECTED_METHOD;
+    private static final ClassValue<Optional<Method>> GET_NARRATION_METHOD_CACHE = new ClassValue<>() {
+        @Override
+        protected Optional<Method> computeValue(Class<?> type) {
+            try {
+                return Optional.of(type.getMethod("getNarration"));
+            } catch (Throwable ignored) {
+                return Optional.empty();
+            }
+        }
+    };
+
+    static {
+        Method found = null;
+        try {
+            for (Method m : AbstractSelectionList.class.getDeclaredMethods()) {
+                if (m.getName().equals("setSelected") && m.getParameterCount() == 1) {
+                    m.setAccessible(true);
+                    found = m;
+                    break;
+                }
+            }
+        } catch (Throwable ignored) {}
+        SET_SELECTED_METHOD = found;
+    }
 
     public static void onScreenOpened(StatsScreen screen) {
         AccessibilityConfig config = AccessibilityConfig.get();
@@ -124,16 +151,11 @@ public class StatsNarrationHelper {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static void setSelectedEntry(AbstractSelectionList list, Object entry) {
+        if (SET_SELECTED_METHOD == null) return;
         try {
-            for (java.lang.reflect.Method m : AbstractSelectionList.class.getDeclaredMethods()) {
-                if (m.getName().equals("setSelected") && m.getParameterCount() == 1) {
-                    m.setAccessible(true);
-                    m.invoke(list, entry);
-                    break;
-                }
-            }
+            SET_SELECTED_METHOD.invoke(list, entry);
         } catch (Throwable ignored) {}
     }
 
@@ -217,15 +239,17 @@ public class StatsNarrationHelper {
             }
         }
 
-        // 2. Mob Row or General Stat Entry via getNarration()
+        // 2. Mob Row or General Stat Entry via cached getNarration()
         try {
-            java.lang.reflect.Method m = entry.getClass().getMethod("getNarration");
-            Object res = m.invoke(entry);
-            if (res instanceof Component comp) {
-                String str = comp.getString().trim();
-                if (!str.isEmpty()) {
-                    SpeechEngine.getInstance().speak(str, interrupt);
-                    return;
+            Optional<Method> mOpt = GET_NARRATION_METHOD_CACHE.get(entry.getClass());
+            if (mOpt.isPresent()) {
+                Object res = mOpt.get().invoke(entry);
+                if (res instanceof Component comp) {
+                    String str = comp.getString().trim();
+                    if (!str.isEmpty()) {
+                        SpeechEngine.getInstance().speak(str, interrupt);
+                        return;
+                    }
                 }
             }
         } catch (Throwable ignored) {}

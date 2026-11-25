@@ -4,6 +4,7 @@
   "key.mcaccessibility.toggle_chat": "Включить/выключить чтение чата (Ctrl+Alt+C)",
   "key.mcaccessibility.settings": "Настройки доступности (Ctrl+Alt+S)",
   "key.mcaccessibility.f3_summary": "Озвучить меню F3 (Ctrl+Alt+F)",
+  "key.mcaccessibility.read_screen": "Прочитать текст экрана (Ctrl+Alt+R)",
 
   "mcaccessibility.status.voiceover_on": "Озвучка включена",
   "mcaccessibility.status.voiceover_off": "Озвучка отключена",
@@ -14,11 +15,9 @@
 
   "mcaccessibility.tab.synthesizer": "Синтезатор",
   "mcaccessibility.tab.speech": "Речь",
-  "mcaccessibility.tab.advanced": "Продвинутые",
   "mcaccessibility.tab.tutorial": "Туториал",
   "mcaccessibility.tab.synthesizer.tooltip": "Выбор синтезатора речи, голоса, добавление и удаление движков",
   "mcaccessibility.tab.speech.tooltip": "Базовые настройки скорости, громкости и озвучивания игры",
-  "mcaccessibility.tab.advanced.tooltip": "Пунктуация, заглавные буквы, смайлики и параметры активного синтезатора",
   "mcaccessibility.tab.tutorial.tooltip": "Интерактивное руководство и туториал по возможностям мода",
 
   "mcaccessibility.synth.select": "Синтезатор",
@@ -51,6 +50,11 @@
   "mcaccessibility.speech.f3_tooltip": "Озвучивание координат X Y Z, стороны света и биома по клавише Ctrl+Alt+F",
   "mcaccessibility.speech.interrupt": "Остановка речи",
   "mcaccessibility.speech.interrupt_tooltip": "Остановка речи клавишами: при включении нажатие любой клавиши (или Ctrl) мгновенно прерывает текущую речь синтезатора",
+  "mcaccessibility.speech.advanced": "Продвинутые...",
+  "mcaccessibility.speech.advanced_tooltip": "Пунктуация, заглавные буквы, смайлики и параметры активного синтезатора",
+
+  "mcaccessibility.advanced.title": "Продвинутые настройки",
+  "mcaccessibility.advanced.back_tooltip": "Сохранить и вернуться в настройки речи",
 
   "mcaccessibility.advanced.punct": "Пунктуация",
   "mcaccessibility.advanced.punct.none": "Выкл",

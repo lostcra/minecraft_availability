@@ -67,7 +67,7 @@ fi
 
 BUILD_DIR="$SCRIPT_DIR/build"
 CLASSES_DIR="$BUILD_DIR/classes/java/main"
-OUTPUT_JAR="$BUILD_DIR/libs/minecraft_availability-0.1.0-beta.jar"
+OUTPUT_JAR="$BUILD_DIR/libs/minecraft_availability-0.2.0-beta.jar"
 TEMP_EXTRACTED="$BUILD_DIR/temp_api_jars"
 
 rm -rf "$CLASSES_DIR" "$TEMP_EXTRACTED"
@@ -110,6 +110,7 @@ echo "Build SUCCESSFUL: $OUTPUT_JAR"
 
 if [ "$INSTALL_TO_MODS" = true ]; then
     echo "Installing to mods folder: $MODS_DIR"
-    cp "$OUTPUT_JAR" "$MODS_DIR/minecraft_availability-0.1.0-beta.jar"
+    rm -f "$MODS_DIR"/minecraft_availability-*.jar 2>/dev/null || true
+    cp "$OUTPUT_JAR" "$MODS_DIR/minecraft_availability-0.2.0-beta.jar"
     echo "Installed successfully!"
 fi

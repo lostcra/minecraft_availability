@@ -163,6 +163,8 @@ public class CustomCommandBackend implements SpeechBackend {
 
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(exe.getParentFile());
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
 
             Process p = pb.start();
             this.currentProcess = p;
@@ -174,18 +176,13 @@ public class CustomCommandBackend implements SpeechBackend {
                 }
             }
 
-            Thread waitThread = new Thread(() -> {
-                try {
-                    p.waitFor();
-                } catch (InterruptedException ignored) {}
+            p.onExit().thenRun(() -> {
                 synchronized (CustomCommandBackend.this) {
                     if (currentProcess == p) {
                         currentProcess = null;
                     }
                 }
             });
-            waitThread.setDaemon(true);
-            waitThread.start();
         } catch (Throwable t) {
             t.printStackTrace();
         }

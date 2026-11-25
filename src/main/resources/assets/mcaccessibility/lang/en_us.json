@@ -4,6 +4,7 @@
   "key.mcaccessibility.toggle_chat": "Toggle Chat Narration (Ctrl+Alt+C)",
   "key.mcaccessibility.settings": "Accessibility Settings (Ctrl+Alt+S)",
   "key.mcaccessibility.f3_summary": "Narrate F3 Summary (Ctrl+Alt+F)",
+  "key.mcaccessibility.read_screen": "Read Screen Text (Ctrl+Alt+R)",
 
   "mcaccessibility.status.voiceover_on": "Voiceover enabled",
   "mcaccessibility.status.voiceover_off": "Voiceover disabled",
@@ -14,11 +15,9 @@
 
   "mcaccessibility.tab.synthesizer": "Synthesizer",
   "mcaccessibility.tab.speech": "Speech",
-  "mcaccessibility.tab.advanced": "Advanced",
   "mcaccessibility.tab.tutorial": "Tutorial",
   "mcaccessibility.tab.synthesizer.tooltip": "Select speech synthesizer engine, voice, add and delete engines",
   "mcaccessibility.tab.speech.tooltip": "Basic rate, volume and game speech narration settings",
-  "mcaccessibility.tab.advanced.tooltip": "Punctuation, capital letters, emojis and active synthesizer configuration",
   "mcaccessibility.tab.tutorial.tooltip": "Interactive tutorial and quick start guide for mod features",
 
   "mcaccessibility.synth.select": "Synthesizer",
@@ -51,6 +50,11 @@
   "mcaccessibility.speech.f3_tooltip": "Narrate X Y Z coordinates, direction and biome with Ctrl+Alt+F",
   "mcaccessibility.speech.interrupt": "Speech Stop",
   "mcaccessibility.speech.interrupt_tooltip": "Interrupt speech by keys: pressing any key (or Ctrl) immediately silences current speech",
+  "mcaccessibility.speech.advanced": "Advanced...",
+  "mcaccessibility.speech.advanced_tooltip": "Punctuation, capital letters, emojis and active synthesizer configuration",
+
+  "mcaccessibility.advanced.title": "Advanced Settings",
+  "mcaccessibility.advanced.back_tooltip": "Save and return to speech settings",
 
   "mcaccessibility.advanced.punct": "Punctuation",
   "mcaccessibility.advanced.punct.none": "Off",

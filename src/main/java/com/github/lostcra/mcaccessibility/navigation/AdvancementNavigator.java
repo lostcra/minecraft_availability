@@ -10,13 +10,14 @@ import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.gui.screens.advancements.AdvancementWidget;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class AdvancementNavigator {
-    private static AdvancementWidget selectedWidget = null;
-    private static AdvancementTab lastTab = null;
+    private static WeakReference<AdvancementWidget> selectedWidgetRef = new WeakReference<>(null);
+    private static WeakReference<AdvancementTab> lastTabRef = new WeakReference<>(null);
 
     public static void onScreenOpened(AdvancementsScreen screen) {
         AccessorAdvancementsScreen acc = (AccessorAdvancementsScreen) screen;
@@ -28,16 +29,18 @@ public class AdvancementNavigator {
                 acc.mcaccess$setSelectedTab(tab);
             }
         }
-        lastTab = tab;
+        lastTabRef = new WeakReference<>(tab);
         if (tab != null) {
             String tabName = tab.getTitle().getString();
             SpeechEngine.getInstance().speak("Экран достижений. Вкладка: " + tabName, true);
             AccessorAdvancementTab tabAcc = (AccessorAdvancementTab) tab;
-            selectedWidget = tabAcc.mcaccess$getRoot();
-            if (selectedWidget != null) {
-                announceWidget(selectedWidget, false);
+            AdvancementWidget root = tabAcc.mcaccess$getRoot();
+            selectedWidgetRef = new WeakReference<>(root);
+            if (root != null) {
+                announceWidget(root, false);
             }
         } else {
+            selectedWidgetRef = new WeakReference<>(null);
             SpeechEngine.getInstance().speak("Экран достижений. Достижения отсутствуют.", true);
         }
     }
@@ -56,15 +59,16 @@ public class AdvancementNavigator {
         int nextIdx = forward ? (curIdx + 1) % tabList.size() : (curIdx - 1 + tabList.size()) % tabList.size();
         AdvancementTab nextTab = tabList.get(nextIdx);
         acc.mcaccess$setSelectedTab(nextTab);
-        lastTab = nextTab;
+        lastTabRef = new WeakReference<>(nextTab);
 
         String tabName = nextTab.getTitle().getString();
         SpeechEngine.getInstance().speak("Вкладка: " + tabName, true);
 
         AccessorAdvancementTab tabAcc = (AccessorAdvancementTab) nextTab;
-        selectedWidget = tabAcc.mcaccess$getRoot();
-        if (selectedWidget != null) {
-            announceWidget(selectedWidget, false);
+        AdvancementWidget root = tabAcc.mcaccess$getRoot();
+        selectedWidgetRef = new WeakReference<>(root);
+        if (root != null) {
+            announceWidget(root, false);
         }
     }
 
@@ -73,14 +77,16 @@ public class AdvancementNavigator {
         AdvancementTab tab = acc.mcaccess$getSelectedTab();
         if (tab == null) return;
 
-        if (tab != lastTab) {
-            lastTab = tab;
-            selectedWidget = null;
+        if (tab != lastTabRef.get()) {
+            lastTabRef = new WeakReference<>(tab);
+            selectedWidgetRef = new WeakReference<>(null);
         }
 
         AccessorAdvancementTab tabAcc = (AccessorAdvancementTab) tab;
+        AdvancementWidget selectedWidget = selectedWidgetRef.get();
         if (selectedWidget == null) {
             selectedWidget = tabAcc.mcaccess$getRoot();
+            selectedWidgetRef = new WeakReference<>(selectedWidget);
             if (selectedWidget != null) {
                 announceWidget(selectedWidget, true);
             }
@@ -120,8 +126,8 @@ public class AdvancementNavigator {
         }
 
         if (target != null) {
-            selectedWidget = target;
-            announceWidget(selectedWidget, true);
+            selectedWidgetRef = new WeakReference<>(target);
+            announceWidget(target, true);
         }
     }
 
@@ -151,8 +157,9 @@ public class AdvancementNavigator {
     }
 
     public static void repeatCurrent() {
-        if (selectedWidget != null) {
-            announceWidget(selectedWidget, true);
+        AdvancementWidget current = selectedWidgetRef.get();
+        if (current != null) {
+            announceWidget(current, true);
         }
     }
 

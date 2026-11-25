@@ -74,11 +74,15 @@ public class SpeechEngine {
         String engine = config.getTtsEngine();
         SpeechBackend backend = getBackend(engine);
         if (backend != null && backend.isAvailable()) {
+            if (backend != sapiBackend) {
+                sapiBackend.releaseProcess();
+            }
             return backend;
         }
         if (sapiBackend.isAvailable()) {
             return sapiBackend;
         }
+        sapiBackend.releaseProcess();
         return mojangBackend;
     }
 

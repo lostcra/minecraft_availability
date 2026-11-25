@@ -102,7 +102,7 @@ Write-Host "Using Minecraft dir: $MinecraftDir"
 
 $buildDir = "$PSScriptRoot\build"
 $classesDir = "$buildDir\classes\java\main"
-$outputJar = "$buildDir\libs\minecraft_availability-0.1.0-beta.jar"
+$outputJar = "$buildDir\libs\minecraft_availability-0.2.0-beta.jar"
 $tempExtracted = "$buildDir\temp_api_jars"
 
 Write-Host "Creating build directories..."
@@ -187,6 +187,7 @@ Write-Host "Build SUCCESSFUL: $outputJar"
 
 if ($InstallToMods) {
     Write-Host "Installing to Minecraft mods folder: $mods"
-    Copy-Item $outputJar (Join-Path $mods "minecraft_availability-0.1.0-beta.jar") -Force
+    Get-ChildItem -Path $mods -Filter "minecraft_availability-*.jar" -ErrorAction SilentlyContinue | Remove-Item -Force
+    Copy-Item $outputJar (Join-Path $mods "minecraft_availability-0.2.0-beta.jar") -Force
     Write-Host "Installed successfully!"
 }

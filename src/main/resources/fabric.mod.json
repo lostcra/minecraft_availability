@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "mcaccessibility",
-  "version": "0.1.0-beta",
+  "version": "0.2.0-beta",
   "name": "Minecraft Availability",
   "description": "Accessibility mod for Minecraft providing screen narration, inventory reading, advancements navigation, and customizable speech synthesizer.",
   "authors": [

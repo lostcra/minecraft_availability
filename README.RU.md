@@ -119,7 +119,7 @@
 
 **На Windows (PowerShell):**
 ```powershell
-# Собрать JAR-файл мода (minecraft_availability-0.1.0-beta.jar):
+# Собрать JAR-файл мода (minecraft_availability-0.2.0-beta.jar):
 .\compile.ps1
 
 # Собрать и сразу установить в папку .minecraft/mods:

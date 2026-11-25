@@ -15,14 +15,11 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
-import java.io.File;
 import java.util.List;
 
 public class AccessibilitySettingsScreen extends Screen {
     public static final int TAB_SYNTHESIZER = 0;
     public static final int TAB_SPEECH = 1;
-    public static final int TAB_ADVANCED = 2;
-    public static final int TAB_TUTORIAL = 3;
 
     private static int activeTab = TAB_SYNTHESIZER;
 
@@ -39,6 +36,9 @@ public class AccessibilitySettingsScreen extends Screen {
     protected void init() {
         AccessibilityConfig config = AccessibilityConfig.get();
         this.currentBackend = SpeechEngine.getInstance().getActiveBackend(config);
+        if (activeTab != TAB_SYNTHESIZER && activeTab != TAB_SPEECH) {
+            activeTab = TAB_SYNTHESIZER;
+        }
 
         int cx = this.width / 2;
 
@@ -46,52 +46,37 @@ public class AccessibilitySettingsScreen extends Screen {
         addRenderableOnly(new StringWidget(cx - 155, 6, 310, 14,
                 Component.translatable("mcaccessibility.settings.title"), this.font));
 
-        // 2. Tab Navigation Bar (4 buttons: cx-155, cx-76, cx+3, cx+82)
+        // 2. Tab Navigation Bar (3 buttons: cx-155, cx-50, cx+55)
         int tabY = 22;
-        int tWidth1 = 76;
-        int tWidth2 = 76;
-        int tWidth3 = 76;
-        int tWidth4 = 73;
+        int tWidth = 100;
 
         Button synthTabBtn = addRenderableWidget(Button.builder(
                 Component.translatable("mcaccessibility.tab.synthesizer"),
                 btn -> selectTab(TAB_SYNTHESIZER)
-        ).bounds(cx - 155, tabY, tWidth1, 18).build());
+        ).bounds(cx - 155, tabY, tWidth, 18).build());
         synthTabBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.tab.synthesizer.tooltip")));
         if (activeTab == TAB_SYNTHESIZER) synthTabBtn.active = false;
 
         Button speechTabBtn = addRenderableWidget(Button.builder(
                 Component.translatable("mcaccessibility.tab.speech"),
                 btn -> selectTab(TAB_SPEECH)
-        ).bounds(cx - 76, tabY, tWidth2, 18).build());
+        ).bounds(cx - 50, tabY, tWidth, 18).build());
         speechTabBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.tab.speech.tooltip")));
         if (activeTab == TAB_SPEECH) speechTabBtn.active = false;
-
-        Button advTabBtn = addRenderableWidget(Button.builder(
-                Component.translatable("mcaccessibility.tab.advanced"),
-                btn -> selectTab(TAB_ADVANCED)
-        ).bounds(cx + 3, tabY, tWidth3, 18).build());
-        advTabBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.tab.advanced.tooltip")));
-        if (activeTab == TAB_ADVANCED) advTabBtn.active = false;
 
         Button tutTabBtn = addRenderableWidget(Button.builder(
                 Component.translatable("mcaccessibility.tab.tutorial"),
                 btn -> openTutorial()
-        ).bounds(cx + 82, tabY, tWidth4, 18).build());
+        ).bounds(cx + 55, tabY, tWidth, 18).build());
         tutTabBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.tab.tutorial.tooltip")));
 
         // 3. Render contents of the currently selected tab
         int contentY = 46;
         switch (activeTab) {
-            case TAB_SYNTHESIZER:
-                initSynthesizerTab(cx, contentY, config);
-                break;
             case TAB_SPEECH:
                 initSpeechTab(cx, contentY, config);
                 break;
-            case TAB_ADVANCED:
-                initAdvancedTab(cx, contentY, config);
-                break;
+            case TAB_SYNTHESIZER:
             default:
                 initSynthesizerTab(cx, contentY, config);
                 break;
@@ -117,9 +102,6 @@ public class AccessibilitySettingsScreen extends Screen {
                     break;
                 case TAB_SPEECH:
                     tabTitle = Component.translatable("mcaccessibility.tab.speech").getString();
-                    break;
-                case TAB_ADVANCED:
-                    tabTitle = Component.translatable("mcaccessibility.tab.advanced").getString();
                     break;
                 default:
                     tabTitle = "";
@@ -288,165 +270,22 @@ public class AccessibilitySettingsScreen extends Screen {
         interruptBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.speech.interrupt_tooltip")));
         y += 24;
 
-        // 5. Test Speech button
+        // 5. Advanced Settings & Test Speech buttons (2 columns of 150)
+        Button advancedBtn = addRenderableWidget(Button.builder(
+                Component.translatable("mcaccessibility.speech.advanced"),
+                btn -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreenAndShow(new AdvancedSettingsScreen(this));
+                    }
+                }
+        ).bounds(cx - 155, y, 150, 20).build());
+        advancedBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.speech.advanced_tooltip")));
+
         Button testBtn = addRenderableWidget(Button.builder(
                 Component.translatable("mcaccessibility.gui.test"),
                 btn -> SpeechEngine.getInstance().testSpeech()
-        ).bounds(cx - 155, y, 310, 20).build());
+        ).bounds(cx + 5, y, 150, 20).build());
         testBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.gui.test_tooltip")));
-    }
-
-    // ==========================================
-    // TAB 2: ADVANCED & SYNTHESIZER CONFIG
-    // ==========================================
-    private void initAdvancedTab(int cx, int y, AccessibilityConfig config) {
-        // 1. Punctuation Mode (150) & Capital Letters Mode (150)
-        CycleButton<String> punctBtn = addRenderableWidget(CycleButton.builder(
-                mode -> {
-                    switch (mode) {
-                        case "NONE": return Component.translatable("mcaccessibility.advanced.punct.none");
-                        case "SOME": return Component.translatable("mcaccessibility.advanced.punct.some");
-                        case "ALL": return Component.translatable("mcaccessibility.advanced.punct.all");
-                        default: return Component.literal(mode);
-                    }
-                },
-                config.getPunctuationMode()
-        ).withValues(List.of("NONE", "SOME", "ALL")).create(
-                cx - 155, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.punct"),
-                (btn, val) -> {
-                    config.setPunctuationMode(val);
-                    config.save();
-                    SpeechEngine.getInstance().speak(Component.translatable("mcaccessibility.advanced.punct").getString() + ": " + btn.getMessage().getString(), true);
-                }
-        ));
-        punctBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.punct_tooltip")));
-
-        CycleButton<String> capitalBtn = addRenderableWidget(CycleButton.builder(
-                mode -> {
-                    switch (mode) {
-                        case "OFF": return Component.translatable("mcaccessibility.advanced.capitals.off");
-                        case "WORD": return Component.translatable("mcaccessibility.advanced.capitals.word");
-                        case "PITCH": return Component.translatable("mcaccessibility.advanced.capitals.pitch");
-                        case "BEEP": return Component.translatable("mcaccessibility.advanced.capitals.beep");
-                        default: return Component.literal(mode);
-                    }
-                },
-                config.getCapitalMode()
-        ).withValues(List.of("OFF", "WORD", "PITCH", "BEEP")).create(
-                cx + 5, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.capitals"),
-                (btn, val) -> {
-                    config.setCapitalMode(val);
-                    config.save();
-                    SpeechEngine.getInstance().speak(Component.translatable("mcaccessibility.advanced.capitals").getString() + ": " + btn.getMessage().getString(), true);
-                }
-        ));
-        capitalBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.capitals_tooltip")));
-        y += 22;
-
-        // 2. Emoji Reading (150) & Detailed Tooltips (150)
-        CycleButton<Boolean> emojiBtn = addRenderableWidget(CycleButton.onOffBuilder(config.isReadEmojis()).create(
-                cx - 155, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.emojis"),
-                (btn, val) -> {
-                    config.setReadEmojis(val);
-                    config.save();
-                    SpeechEngine.getInstance().speak(val ? "Чтение смайликов включено" : "Чтение смайликов отключено", true);
-                }
-        ));
-        emojiBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.emojis_tooltip")));
-
-        CycleButton<Boolean> tooltipsBtn = addRenderableWidget(CycleButton.onOffBuilder(config.isDetailedTooltips()).create(
-                cx + 5, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.tooltips"),
-                (btn, val) -> {
-                    config.setDetailedTooltips(val);
-                    config.save();
-                }
-        ));
-        tooltipsBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.tooltips_tooltip")));
-        y += 22;
-
-        // 3. Narrate Hotkeys (150) & Keyboard Inventory Nav (150)
-        CycleButton<Boolean> hotkeysBtn = addRenderableWidget(CycleButton.onOffBuilder(config.isNarrateHotkeys()).create(
-                cx - 155, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.hotkeys"),
-                (btn, val) -> {
-                    config.setNarrateHotkeys(val);
-                    config.save();
-                }
-        ));
-        hotkeysBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.hotkeys_tooltip")));
-
-        CycleButton<Boolean> invKeysBtn = addRenderableWidget(CycleButton.onOffBuilder(config.isKeyboardInventoryNav()).create(
-                cx + 5, y, 150, 20,
-                Component.translatable("mcaccessibility.advanced.inv_keys"),
-                (btn, val) -> {
-                    config.setKeyboardInventoryNav(val);
-                    config.save();
-                }
-        ));
-        invKeysBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.inv_keys_tooltip")));
-        y += 24;
-
-        // 4. Synthesizer Specific Configuration Block
-        addRenderableOnly(new StringWidget(cx - 155, y, 310, 14,
-                Component.translatable("mcaccessibility.advanced.synth_header"), this.font));
-        y += 16;
-
-        if (currentBackend instanceof CustomCommandBackend customBackend) {
-            CustomSynthesizerConfig synthConfig = customBackend.getConfig();
-
-            Button editSynthBtn = addRenderableWidget(Button.builder(
-                    Component.translatable("mcaccessibility.advanced.configure_synth"),
-                    btn -> {
-                        if (this.minecraft != null) {
-                            this.minecraft.setScreenAndShow(new CustomSynthesizerEditScreen(this, synthConfig));
-                        }
-                    }
-            ).bounds(cx - 155, y, 150, 20).build());
-            editSynthBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.configure_synth_tooltip")));
-
-            Button openFolderBtn = addRenderableWidget(Button.builder(
-                    Component.translatable("mcaccessibility.advanced.open_synth_folder"),
-                    btn -> openFolderForFile(synthConfig.getExecutablePath())
-            ).bounds(cx + 5, y, 150, 20).build());
-            openFolderBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.open_synth_folder_tooltip")));
-        } else if ("WINDOWS_SAPI".equalsIgnoreCase(currentBackend.getId())) {
-            Button winSpeechBtn = addRenderableWidget(Button.builder(
-                    Component.translatable("mcaccessibility.advanced.windows_speech"),
-                    btn -> openWindowsSpeechSettings()
-            ).bounds(cx - 155, y, 310, 20).build());
-            winSpeechBtn.setTooltip(Tooltip.create(Component.translatable("mcaccessibility.advanced.windows_speech_tooltip")));
-        } else {
-            addRenderableOnly(new StringWidget(cx - 155, y, 310, 14,
-                    Component.translatable("mcaccessibility.advanced.mojang_narrator_info"), this.font));
-        }
-    }
-
-    private void openFolderForFile(String path) {
-        if (path == null || path.trim().isEmpty()) return;
-        try {
-            File f = new File(path);
-            if (f.exists()) {
-                new ProcessBuilder("explorer.exe", "/select,", f.getAbsolutePath()).start();
-                SpeechEngine.getInstance().speak("Папка программы открыта в Проводнике Windows", true);
-                return;
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        SpeechEngine.getInstance().speak("Файл программы не найден", true);
-    }
-
-    private void openWindowsSpeechSettings() {
-        try {
-            new ProcessBuilder("cmd.exe", "/c", "start ms-settings:speech").start();
-            SpeechEngine.getInstance().speak("Открыты параметры распознавания и синтеза речи Windows", true);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
     }
 
     private void updateDeleteButtonState() {
@@ -524,10 +363,10 @@ public class AccessibilitySettingsScreen extends Screen {
     public boolean keyPressed(KeyEvent event) {
         int key = event.key();
         if (key == InputConstants.KEY_PAGEUP) {
-            selectTab((activeTab - 1 + 3) % 3);
+            selectTab((activeTab - 1 + 2) % 2);
             return true;
         } else if (key == InputConstants.KEY_PAGEDOWN) {
-            selectTab((activeTab + 1) % 3);
+            selectTab((activeTab + 1) % 2);
             return true;
         }
         return super.keyPressed(event);

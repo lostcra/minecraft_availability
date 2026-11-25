@@ -1,6 +1,7 @@
 package com.github.lostcra.mcaccessibility.mixin;
 
 import com.github.lostcra.mcaccessibility.config.AccessibilityConfig;
+import com.github.lostcra.mcaccessibility.navigation.EditBoxNarrationHelper;
 import com.github.lostcra.mcaccessibility.tts.SpeechEngine;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,10 @@ public class MixinGameNarrator {
         AccessibilityConfig config = AccessibilityConfig.get();
         if (config.isMasterEnabled() && config.isScreenNarrationEnabled()) {
             if (text != null && !text.trim().isEmpty()) {
+                if (EditBoxNarrationHelper.shouldSuppressScreenNarration(text.trim())) {
+                    ci.cancel();
+                    return;
+                }
                 SpeechEngine.getInstance().speak(text.trim(), true);
             }
             ci.cancel();

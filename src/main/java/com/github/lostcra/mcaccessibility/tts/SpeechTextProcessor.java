@@ -6,37 +6,40 @@ import java.util.Map;
 
 public class SpeechTextProcessor {
 
+    private static final Map<String, String> ASCII_EMOTICONS;
+    private static final Map<String, String> UNICODE_EMOJIS;
     private static final Map<String, String> EMOJIS;
 
     static {
-        Map<String, String> map = new LinkedHashMap<>();
+        Map<String, String> ascii = new LinkedHashMap<>();
+        ascii.put(":-)", "смайлик улыбка");
+        ascii.put(":)", "смайлик улыбка");
+        ascii.put("=)", "смайлик улыбка");
+        ascii.put(":-(", "смайлик грусть");
+        ascii.put(":(", "смайлик грусть");
+        ascii.put("=(", "смайлик грусть");
+        ascii.put(":-D", "смайлик смех");
+        ascii.put(":D", "смайлик смех");
+        ascii.put("=D", "смайлик смех");
+        ascii.put("xD", "смайлик громкий смех");
+        ascii.put("XD", "смайлик громкий смех");
+        ascii.put(";-)", "смайлик подмигивание");
+        ascii.put(";)", "смайлик подмигивание");
+        ascii.put(":-P", "смайлик показывает язык");
+        ascii.put(":P", "смайлик показывает язык");
+        ascii.put(":-p", "смайлик показывает язык");
+        ascii.put(":p", "смайлик показывает язык");
+        ascii.put(":-O", "смайлик удивление");
+        ascii.put(":O", "смайлик удивление");
+        ascii.put(":-o", "смайлик удивление");
+        ascii.put(":o", "смайлик удивление");
+        ascii.put(":-/", "смайлик сомнение");
+        ascii.put(":/", "смайлик сомнение");
+        ascii.put("<3", "сердечко");
+        ascii.put("¯\\_(ツ)_/¯", "пожимает плечами");
+        ASCII_EMOTICONS = Collections.unmodifiableMap(ascii);
 
-        // Common text emoticons
-        map.put(":-)", "смайлик улыбка");
-        map.put(":)", "смайлик улыбка");
-        map.put("=)", "смайлик улыбка");
-        map.put(":-(", "смайлик грусть");
-        map.put(":(", "смайлик грусть");
-        map.put("=(", "смайлик грусть");
-        map.put(":-D", "смайлик смех");
-        map.put(":D", "смайлик смех");
-        map.put("=D", "смайлик смех");
-        map.put("xD", "смайлик громкий смех");
-        map.put("XD", "смайлик громкий смех");
-        map.put(";-)", "смайлик подмигивание");
-        map.put(";)", "смайлик подмигивание");
-        map.put(":-P", "смайлик показывает язык");
-        map.put(":P", "смайлик показывает язык");
-        map.put(":-p", "смайлик показывает язык");
-        map.put(":p", "смайлик показывает язык");
-        map.put(":-O", "смайлик удивление");
-        map.put(":O", "смайлик удивление");
-        map.put(":-o", "смайлик удивление");
-        map.put(":o", "смайлик удивление");
-        map.put(":-/", "смайлик сомнение");
-        map.put(":/", "смайлик сомнение");
-        map.put("<3", "сердечко");
-        map.put("¯\\_(ツ)_/¯", "пожимает плечами");
+        Map<String, String> map = new LinkedHashMap<>();
 
         // Faces & Emotions
         map.put("😀", "улыбающееся лицо");
@@ -202,15 +205,50 @@ public class SpeechTextProcessor {
         map.put("❓", "вопросительный знак");
         map.put("❗", "восклицательный знак");
 
-        EMOJIS = Collections.unmodifiableMap(map);
+        UNICODE_EMOJIS = Collections.unmodifiableMap(map);
+        Map<String, String> combined = new LinkedHashMap<>(ASCII_EMOTICONS);
+        combined.putAll(UNICODE_EMOJIS);
+        EMOJIS = Collections.unmodifiableMap(combined);
     }
 
     public static String translateEmojis(String text) {
         if (text == null || text.isEmpty()) return text;
+
+        boolean hasAsciiTrigger = false;
+        boolean hasUnicodeTrigger = false;
+        int len = text.length();
+        for (int i = 0; i < len; i++) {
+            char c = text.charAt(i);
+            if (c >= 0x2000 || Character.isHighSurrogate(c)) {
+                hasUnicodeTrigger = true;
+                if (c == '¯') hasAsciiTrigger = true;
+            } else if ((c == ':' || c == ';' || c == '=' || c == '<' || c == 'x' || c == 'X')
+                    && i + 1 < len) {
+                char next = text.charAt(i + 1);
+                if (next != ' ' && next != '\t' && next != '\n') {
+                    hasAsciiTrigger = true;
+                }
+            }
+            if (hasAsciiTrigger && hasUnicodeTrigger) break;
+        }
+
+        if (!hasAsciiTrigger && !hasUnicodeTrigger) {
+            return text;
+        }
+
         String result = text;
-        for (Map.Entry<String, String> entry : EMOJIS.entrySet()) {
-            if (result.contains(entry.getKey())) {
-                result = result.replace(entry.getKey(), " " + entry.getValue() + " ");
+        if (hasAsciiTrigger) {
+            for (Map.Entry<String, String> entry : ASCII_EMOTICONS.entrySet()) {
+                if (result.contains(entry.getKey())) {
+                    result = result.replace(entry.getKey(), " " + entry.getValue() + " ");
+                }
+            }
+        }
+        if (hasUnicodeTrigger) {
+            for (Map.Entry<String, String> entry : UNICODE_EMOJIS.entrySet()) {
+                if (result.contains(entry.getKey())) {
+                    result = result.replace(entry.getKey(), " " + entry.getValue() + " ");
+                }
             }
         }
         return result;
@@ -221,7 +259,7 @@ public class SpeechTextProcessor {
             return text;
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(text.length() + 16);
         boolean all = "ALL".equalsIgnoreCase(mode);
 
         for (int i = 0; i < text.length(); i++) {

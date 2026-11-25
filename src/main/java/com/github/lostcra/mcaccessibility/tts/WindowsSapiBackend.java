@@ -15,13 +15,13 @@ public class WindowsSapiBackend implements SpeechBackend {
     private BufferedReader reader;
     private final List<String> cachedVoices = new ArrayList<>();
     private boolean available = false;
+    private boolean initAttempted = false;
+    private boolean shutdownHookRegistered = false;
     private final MojangNarratorBackend fallbackBackend;
 
     public WindowsSapiBackend(MojangNarratorBackend fallbackBackend) {
         this.fallbackBackend = fallbackBackend;
-        if (isWindows()) {
-            initProcess();
-        }
+        this.available = isWindows();
     }
 
     @Override
@@ -39,7 +39,22 @@ public class WindowsSapiBackend implements SpeechBackend {
         return os.contains("win");
     }
 
+    private synchronized void ensureProcessStarted() {
+        if (!isWindows()) {
+            available = false;
+            return;
+        }
+        if (process != null && process.isAlive() && writer != null) {
+            return;
+        }
+        if (initAttempted && !available) {
+            return;
+        }
+        initProcess();
+    }
+
     private synchronized void initProcess() {
+        initAttempted = true;
         try {
             ProcessBuilder pb = new ProcessBuilder(
                     "powershell.exe",
@@ -78,6 +93,7 @@ public class WindowsSapiBackend implements SpeechBackend {
             writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8));
             reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
 
+            cachedVoices.clear();
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("VOICE_LIST:")) {
@@ -88,11 +104,31 @@ public class WindowsSapiBackend implements SpeechBackend {
                 }
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread(this::destroyProcess));
+            // Drain any remaining output on a daemon thread so the OS pipe buffer never fills up
+            final Process startedProc = process;
+            final BufferedReader procReader = reader;
+            Thread drainer = new Thread(() -> {
+                try {
+                    while (startedProc.isAlive() && procReader.readLine() != null) {
+                        // discard
+                    }
+                } catch (Throwable ignored) {}
+            }, "MCAccessibility-SAPI-Drain");
+            drainer.setDaemon(true);
+            drainer.start();
+
+            if (!shutdownHookRegistered) {
+                shutdownHookRegistered = true;
+                Runtime.getRuntime().addShutdownHook(new Thread(this::destroyProcess));
+            }
         } catch (Throwable t) {
             t.printStackTrace();
             available = false;
         }
+    }
+
+    public synchronized void releaseProcess() {
+        destroyProcess();
     }
 
     private synchronized void destroyProcess() {
@@ -100,16 +136,26 @@ public class WindowsSapiBackend implements SpeechBackend {
             if (writer != null) {
                 writer.write("EXIT\n");
                 writer.flush();
+                writer.close();
             }
         } catch (Exception ignored) {}
+        writer = null;
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+        } catch (Exception ignored) {}
+        reader = null;
         if (process != null && process.isAlive()) {
             process.destroyForcibly();
         }
+        process = null;
     }
 
     @Override
     public synchronized void speak(String text, boolean interrupt, int volume, int rate, String voice) {
-        if (!available || writer == null || !process.isAlive()) {
+        ensureProcessStarted();
+        if (!available || writer == null || process == null || !process.isAlive()) {
             if (fallbackBackend != null) {
                 fallbackBackend.speak(text, interrupt, volume, rate, voice);
             }
@@ -133,7 +179,7 @@ public class WindowsSapiBackend implements SpeechBackend {
 
     @Override
     public synchronized void stop() {
-        if (available && writer != null && process.isAlive()) {
+        if (available && writer != null && process != null && process.isAlive()) {
             try {
                 writer.write("STOP\n");
                 writer.flush();
@@ -145,7 +191,10 @@ public class WindowsSapiBackend implements SpeechBackend {
     }
 
     @Override
-    public List<String> getAvailableVoices() {
+    public synchronized List<String> getAvailableVoices() {
+        if (cachedVoices.isEmpty() && isWindows()) {
+            ensureProcessStarted();
+        }
         if (cachedVoices.isEmpty()) {
             return Collections.singletonList("Default");
         }
@@ -157,6 +206,6 @@ public class WindowsSapiBackend implements SpeechBackend {
 
     @Override
     public boolean isAvailable() {
-        return available && process != null && process.isAlive();
+        return available;
     }
 }

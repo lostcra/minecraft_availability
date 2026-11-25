@@ -119,7 +119,7 @@ The repository includes cross-platform build scripts with automatic discovery of
 
 **On Windows (PowerShell):**
 ```powershell
-# Build mod JAR (minecraft_availability-0.1.0-beta.jar):
+# Build mod JAR (minecraft_availability-0.2.0-beta.jar):
 .\compile.ps1
 
 # Build and copy directly into .minecraft/mods:

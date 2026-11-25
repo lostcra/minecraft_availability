@@ -10,14 +10,15 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class InventoryNavigator {
     private static int selectedIndex = 0;
-    private static Slot lastAnnouncedSlot = null;
+    private static WeakReference<Slot> lastAnnouncedSlotRef = new WeakReference<>(null);
 
     public static void onScreenOpened(AbstractContainerScreen<?> screen) {
-        lastAnnouncedSlot = null;
+        lastAnnouncedSlotRef = new WeakReference<>(null);
         selectedIndex = 0;
         String screenTitle = screen.getTitle().getString();
         SpeechEngine.getInstance().speak("Контейнер: " + screenTitle, true);
@@ -33,8 +34,8 @@ public class InventoryNavigator {
 
     public static void onSlotHoverChanged(AbstractContainerScreen<?> screen, Slot newSlot) {
         if (!AccessibilityConfig.get().isInventoryNarrationEnabled()) return;
-        if (newSlot != null && newSlot != lastAnnouncedSlot) {
-            lastAnnouncedSlot = newSlot;
+        if (newSlot != null && newSlot != lastAnnouncedSlotRef.get()) {
+            lastAnnouncedSlotRef = new WeakReference<>(newSlot);
             AccessorAbstractContainerScreen acc = (AccessorAbstractContainerScreen) screen;
             AbstractContainerMenu menu = acc.mcaccess$getMenu();
             if (menu != null) {
@@ -68,7 +69,7 @@ public class InventoryNavigator {
         selectedIndex = targetIndex;
         Slot targetSlot = menu.slots.get(selectedIndex);
         acc.mcaccess$setHoveredSlot(targetSlot);
-        lastAnnouncedSlot = targetSlot;
+        lastAnnouncedSlotRef = new WeakReference<>(targetSlot);
         announceSlot(screen, targetSlot, true);
     }
 
@@ -81,7 +82,7 @@ public class InventoryNavigator {
         selectedIndex = forward ? (selectedIndex + 1) % total : (selectedIndex - 1 + total) % total;
         Slot targetSlot = menu.slots.get(selectedIndex);
         acc.mcaccess$setHoveredSlot(targetSlot);
-        lastAnnouncedSlot = targetSlot;
+        lastAnnouncedSlotRef = new WeakReference<>(targetSlot);
         announceSlot(screen, targetSlot, true);
     }
 
